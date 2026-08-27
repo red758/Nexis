@@ -26,7 +26,7 @@ function App() {
   const handleRegister=async (e)=>{
     e.preventDefault();
     await axios.post('http://localhost:5000/api/users/register',formData);
-    setFormDate({userName:'', email:'', orgName:''});
+    setFormData({userName:'', email:'', orgName:''});
     fetchUsers();
   };
 
@@ -35,26 +35,36 @@ function App() {
     setTasks(response.data);
   };
 
-  const handleLogin =(user)=>{
+  const handleLogin = (user) => {
+    console.log("CLICKED USER DATA:", user);
+    if (!user.organization) {
+      alert("Hold up! This user has no organization data.");
+      return; 
+    }
+    const orgId = user.organization._id ? user.organization._id : user.organization;
     setCurrentUser(user);
-    fetchTasks(user.organization._id);
+    fetchTasks(orgId); 
   };
 
-  const handleCreateTask=async(e)=>{
+  const handleCreateTask = async (e) => {
     e.preventDefault();
-    await axios.post('http://localhost:5000/api/tasks',{
-      title:taskTitle,
+    
+    // Use the same safe logic here
+    const orgId = currentUser.organization._id ? currentUser.organization._id : currentUser.organization;
+
+    await axios.post('http://localhost:5000/api/tasks', {
+      title: taskTitle,
       assigneeId: currentUser._id,
-      organizationalId: currentUser.organizational._id
+      organizationId: orgId   // <--- Updated this line
     });
     setTaskTitle('');
-    fetchTasks(currentUser.organizational._id);
+    fetchTasks(orgId); // <--- Updated this line
   };
   
   if(currentUser){
     return(
       <div style={{padding:'20px', fontFamily:'sans-serif'}}>
-        <button onClick={()=>setCurrentUser(null)} style={{matginBottom:'20px'}}>Logout</button>
+        <button onClick={()=>setCurrentUser(null)} style={{marginBottom:'20px'}}>Logout</button>
 
         <h2>{currentUser.organizational} Workspace</h2>
         <p>Welcome back, {currentUser.name}</p>

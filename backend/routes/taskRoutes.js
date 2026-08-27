@@ -7,7 +7,7 @@ router.post('/',async (req,res)=>{
         const {title, assigneeId, organizationId}=req.body;
 
         const newTask=await Task.create({
-            title,
+            title:title,
             assignee: assigneeId,
             organization:organizationId
         });
