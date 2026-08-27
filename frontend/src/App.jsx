@@ -48,17 +48,14 @@ function App() {
 
   const handleCreateTask = async (e) => {
     e.preventDefault();
-    
-    // Use the same safe logic here
     const orgId = currentUser.organization._id ? currentUser.organization._id : currentUser.organization;
-
     await axios.post('http://localhost:5000/api/tasks', {
       title: taskTitle,
       assigneeId: currentUser._id,
-      organizationId: orgId   // <--- Updated this line
+      organizationId: orgId 
     });
     setTaskTitle('');
-    fetchTasks(orgId); // <--- Updated this line
+    fetchTasks(orgId);
   };
   
   if(currentUser){
@@ -98,17 +95,19 @@ function App() {
   }
   else{
   return(
-    <div style={{fontFamily:'sans-serif', maxWidth:'600px', margin:'0 auto', padding:'20px'}}>
+    <div style={{fontFamily:'sans-serif', maxWidth:'600px', margin:'0 auto', padding:'20px', border:'2px solid black', borderRadius:'5px'}}>
+      
       <h2>Nexis Login / Register</h2>
 
-      <form onSubmit={handleRegister} style={{display:'flex', flexDirection:'column', gap:'10px', marginBottom:'30px'}}>
-        <input type="text" name="username" placeholder="Your Name" value={formData.userName} onChange={e=> setFormData({...formData, userName:e.target.value})} required/>
-        <input type="email" name="email" placeholder="Email" value={formData.email} onChange={e=>setFormData({...formData, email:e.target.value})} required/>
-        <input type="text" name="orgName" placeholder="Organization value" value={formData.orgName} onChange={e=>setFormData({...formData, orgName: e.target.value})} required/>
+      <div style={{border:'2px solid #a89d9d', borderRadius:'5px', padding:'20px 15px'}}>
+        <form onSubmit={handleRegister} style={{display:'flex', flexDirection:'column', gap:'10px', marginBottom:'30px'}}>
+          <input type="text" name="username" placeholder="Your Name" value={formData.userName} onChange={e=> setFormData({...formData, userName:e.target.value})} required/>
+          <input type="email" name="email" placeholder="Email" value={formData.email} onChange={e=>setFormData({...formData, email:e.target.value})} required/>
+          <input type="text" name="orgName" placeholder="Organization value" value={formData.orgName} onChange={e=>setFormData({...formData, orgName: e.target.value})} required/>
 
-        <button type="submit" style={{padding:'10px', backgroundColor:'black', color:'white'}}>Create Account</button>
-      </form>
-
+          <button type="submit" style={{padding:'10px', backgroundColor:'black', color:'white', borderRadius:'10px'}}>Create Account</button>
+        </form>
+      </div>
       <h3>Simulate Login</h3>
       <ul style={{listStyleType:'none', padding:0}}>
         {users.map((user)=>(
@@ -123,7 +122,8 @@ function App() {
         ))}
       </ul>
     </div>
-  );}
+  );
+  }
 }
 
 export default App;
