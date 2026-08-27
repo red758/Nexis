@@ -5,7 +5,7 @@ function App() {
   const [users, setUsers] = useState([]);
   const [tasks, setTasks]=useState([]);
   const [taskTitle, setTaskTitle]=useState('');
-  const [currentUSer, setCurrentUser]=useState('null');
+  const [currentUser, setCurrentUser]=useState('null');
   
   const [formData, setFormData] = useState({ userName: '', email: '', orgName: '' });
   
@@ -44,11 +44,11 @@ function App() {
     e.preventDefault();
     await axios.post('http://localhost:5000/api/tasks',{
       title:taskTitle,
-      assigneeId: currentUSer._id,
-      organizationalId: currentUSer.organizational._id
+      assigneeId: currentUser._id,
+      organizationalId: currentUser.organizational._id
     });
     setTaskTitle('');
-    fetchTasks(currentUSer.organizational._id);
+    fetchTasks(currentUser.organizational._id);
   };
   
   if(currentUser){
@@ -56,7 +56,7 @@ function App() {
       <div style={{padding:'20px', fontFamily:'sans-serif'}}>
         <button onClick={()=>setCurrentUser(null)} style={{matginBottom:'20px'}}>Logout</button>
 
-        <h2>{currentUser.organizational.name} Workspace</h2>
+        <h2>{currentUser.organizational} Workspace</h2>
         <p>Welcome back, {currentUser.name}</p>
 
         <form onSubmit={handleCreateTask} style={{marginBottom:'30px'}}>
@@ -86,7 +86,7 @@ function App() {
       </div>
     )
   }
-
+  else{
   return(
     <div style={{fontFamily:'sans-serif', maxWidth:'600px', margin:'0 auto', padding:'20px'}}>
       <h2>Nexis Login / Register</h2>
@@ -113,7 +113,7 @@ function App() {
         ))}
       </ul>
     </div>
-  );
+  );}
 }
 
 export default App;
