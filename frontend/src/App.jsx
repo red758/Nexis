@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import {io} from 'socket.io-client';
+
+//We create the connection outside the component so it doesnt re-connect every time the component re render
+const socket=io('http://localhost:5000');
 
 function App() {
   const [users, setUsers] = useState([]);
@@ -9,6 +13,9 @@ function App() {
   
   const [formData, setFormData] = useState({ userName: '', email: '', orgName: '' });
   
+  //To store our notifications
+  const [notifications, setNotifications]=useState([]);
+
   // Fetch users when the page loads
   const fetchUsers = async () => {
     try {
@@ -23,6 +30,31 @@ function App() {
     fetchUsers();
   }, []);
 
+  //Websocket setup
+  useEffect(()=>{
+    if(currentUser){
+        //Get the organization id
+        const orgId =currentUser.organization._id?currentUser.organization._id : currentUser.organization;
+
+        //Tell the server to put us this organization channel
+        socket.emit('join_workspace',orgId);
+
+        //Keep listening for the task added shout from the server
+        socket.on('task_added',(data)=>{
+          //Add messages to our notifiactions list
+          setNotifications((prev)=>[data.message,...prev]);
+
+          //To get instant view of new task added by different people in same organization
+          fetchTasks(orgId);        
+        });
+
+      //To disconnect the socket
+      return()=>{
+        socket.off('task_added');
+      };
+    }
+  },[currentUser]);
+
   const handleRegister=async (e)=>{
     e.preventDefault();
     await axios.post('http://localhost:5000/api/users/register',formData);
@@ -31,21 +63,45 @@ function App() {
   };
 
   const fetchTasks=async (orgId)=>{
-    const response=await axios.get(`http://localhost:5000/api/tasks/${orgId}`);
-    setTasks(response.data);
-    //console.log(response.data);
+    try{
+      const response=await axios.get(`http://localhost:5000/api/tasks/${orgId}`);
+      setTasks(response.data);
+    }
+    catch(error){
+      console.error('Error fetching tasks',error);
+    }
+    //console.log(response.data); 
   };
 
   const handleLogin = (user) => {
-    console.log("CLICKED USER DATA:", user);
+    //console.log("CLICKED USER DATA:", user);
     if (!user.organization) {
-      alert("Hold up! This user has no organization data.");
+      alert("This user has no organization data.");
       return; 
     }
-    const orgId = user.organization._id ;
+    const orgId = user.organization._id ? user.organization._id : user.organization ;
     setCurrentUser(user);
     fetchTasks(orgId); 
   };
+
+  const handleLogout = () => {
+    //Cut the live connection immediately.
+    //This stops background listeners from running and prevents memory leaks.
+    socket.disconnect(); 
+
+    //Turn the socket back on so it is fresh and ready 
+    //for the next person who logs in on this computer.
+    socket.connect(); 
+
+    //Clear the user state in React.
+    //This instantly takes them out of the dashboard view.
+    setCurrentUser(null); 
+
+    //Wipe the security key from the browser's local vault (if you are using one).
+    //This ensures no one can refresh the page to sneak back into the account.
+    localStorage.removeItem('token'); 
+  };
+
 
   const handleCreateTask = async (e) => {
     e.preventDefault();
@@ -59,64 +115,76 @@ function App() {
     fetchTasks(orgId);
   };
   
-  if(currentUser){
+  if (currentUser){
     return(
-      <div style={{padding:'20px', fontFamily:'sans-serif'}}>
-        <button onClick={()=>setCurrentUser(null)} style={{marginBottom:'20px'}}>Logout</button>
+      <div style={{padding:'20px', fontFamily:'sans-serif', display:'flex', gap:'40px'}}>
+        
+        {/* Left column tasks*/}
+        <div style={{flex:2}}>
+          
+          <button onClick={handleLogout} style={{marginBottom:'20px'}}>Logout</button>
+          
+          <h2>{currentUser.organization.name} Workspace</h2>
+          
+          <p>Welcome back, {currentUser.name}</p>
 
-        <h2>{currentUser.organization?.name || 'My'} Workspace</h2>
-        <p>Welcome back, {currentUser.name}</p>
+          <form onSubmit={handleCreateTask} style={{marginBottom:'30px'}}>
+          
+            <input type="text" placeholder="What needs to be done?" valule={taskTitle} onChange={(e)=>setTaskTitle(e.target.value)} required style={{padding:'10px', width:'300px'}}/>
+            <button type="submit" style={{padding:'10px', width:'300px'}}>Add Task</button>
+          
+          </form>
 
-        <form onSubmit={handleCreateTask} style={{marginBottom:'30px'}}>
-          <input type="text" 
-          placeholder="What needs to be done?" 
-          value={taskTitle} 
-          onChange={(e)=>setTaskTitle(e.target.value)} 
-          required 
-          style={{padding:'10px', width:'300px'}}
-          />
+          <h3>Project Tasks</h3>
+          <ul style={{listStyleType:'none', padding:0}}>
+            {tasks.map(task=>(
+              <li key={task._id} style={{border:'1px solid black', padding:'15px', margiin:'10px 0', borderRadius:'5px'}}>
+                
+                <strong>{task.title}</strong>
+                
+                <span stylel={{float:'right', backgroundColor:'#eee', padding:'5px'}}>task.status</span>
 
-          <button type="submit" style={{padding:'10px', backgroundColor:'blue', color:'white'}}>Add Task</button>
-        </form>
+                <p style={{margin:'5px 0 0 0', fontSize:'12px', color:'gray'}}>Assigned to: {task.assignee ? task.assignee.name : 'Unassigned'}</p>
+              
+              </li>
+            ))}
+          </ul>
+        </div>
 
-        <h3>Project Tasks</h3>
-        <ul style={{listStyleType:'none', padding:0}}>
-          {tasks.map(task=>(
-            <li key={task._id} style={{border:'1px solid black', padding:'15px', margin:'10px 0', borderRadius:'5px'}}>
-              <strong>{task.title}</strong>
-              <span style={{float:'right', backgroundColor:'#eee', padding:'5px'}}>{task.status}</span>
-              <p style={{margin:'5px 0 0 0', fontSize:'12px', color:'gray'}}>
-                Assigned to: {task.assignee ? task.assignee.name : 'Unassigned'}
-              </p>
-            </li>
-          ))}
-        </ul>
+        {/*Right column: Live notifications*/}
+        <div style={{flex:1, backgroundColor:'#f9f9f9', padding:'20px', borderRadius:'8px', border:'1px solid #ddd', maxHeight:'500px', overflow:'auto'}}>
+          <h3>Live Notifications</h3>
+          {notifications.length===0 ? (
+            <p style={{color:'gray', fontSize:'14px'}}>No New Notifications...</p>
+          ):(
+            <ul style={{listStyleType:'none', padding:0}}>
+              {notifications.map((note,index)=>(
+                <li key={index} style={{backgroundColor:'#fff', borderLeft:'4px solid green', padding:'10px', marginBottom:'10px', boxShadow:'0 2px 4px rgba(0,0,0,0.1)'}}>
+                  {note}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
-    )
+    );
   }
-  else{
+
   return(
-    <div style={{fontFamily:'sans-serif', maxWidth:'600px', margin:'0 auto', padding:'20px', border:'2px solid black', borderRadius:'5px'}}>
-      
+    <div style={{fontFamily:'sans-serif', maxWidth:'600px', margin:'0 auto', padding:'20px'}}>
       <h2>Nexis Login / Register</h2>
+      <form onSubmit={handleRegister} style={{display:'flex', flexDirection:'column', gap:'10px', marginBottom:'30px'}}>
+        <input type="text" name="userName" placeholder="Your Name" value={formData.userName} onChange={e=>setFormData({...formData, userName:e.target.value})} required/>
+        <input type="text" name="email" placeholder="Email" value={formData.email} onChange={e=>setFormData({...formData, email:e.target.value})} required/>
+        <input type="text" name="orgName" placeholder="Oganization Name" value={formData.orgName} onChange={e=>setFormData({...formData, orgName:e.target.value})} required/>
 
-      <div style={{border:'2px solid #a89d9d', borderRadius:'5px', padding:'20px 15px'}}>
-        <form onSubmit={handleRegister} style={{display:'flex', flexDirection:'column', gap:'10px', marginBottom:'30px'}}>
-          <input type="text" name="username" placeholder="Your Name" value={formData.userName} onChange={e=> setFormData({...formData, userName:e.target.value})} required/>
-          <input type="email" name="email" placeholder="Email" value={formData.email} onChange={e=>setFormData({...formData, email:e.target.value})} required/>
-          <input type="text" name="orgName" placeholder="Organization value" value={formData.orgName} onChange={e=>setFormData({...formData, orgName: e.target.value})} required/>
+        <button type="submit" style={{padding:'10px', backgroundColor:'black', color:'white'}}>Create Account</button>
+      </form>
 
-          <button type="submit" style={{padding:'10px', backgroundColor:'black', color:'white', borderRadius:'10px'}}>Create Account</button>
-        </form>
-      </div>
-      <h3>Simulate Login</h3>
+      <h3>Simulate Login (Click a user)</h3>
       <ul style={{listStyleType:'none', padding:0}}>
         {users.map((user)=>(
-          <li
-          key={user.id}
-          onClick={()=>handleLogin(user)}
-          style={{border:'1px solid black', padding:'10px', margin:'10x 0', cursor:'pointer'}}
-          >
+          <li key={user._id} onClick={()=>handleLogin(user)} style={{border:'1px solid #ccc', padding:'10px', margin:'10px 0', cursor:'pointer'}}>
             <strong>{user.name}</strong> - {user.organization ? user.organization.name : 'None'}
             <span style={{float:'right', color:'blue'}}>Login</span>
           </li>
@@ -124,7 +192,6 @@ function App() {
       </ul>
     </div>
   );
-  }
-}
 
+}
 export default App;

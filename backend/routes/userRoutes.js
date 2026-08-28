@@ -5,24 +5,38 @@ const User = require('../models/User');
 const Organization = require('../models/Organization');
 
 // Route 1: Create a new Organization and a User inside it
-router.post('/register', async (req, res) => {
-    try {
-        const { userName, email, orgName } = req.body;
+router.post('/register',async(req,res)=>{
+    try{
+        const {userName, email, orgName}=req.body;
 
-        // 1. Create the Organization first
-        const newOrg = await Organization.create({ name: orgName });
+        //Check if organization already exist
+        let existingOrg = await Organization.findOne({name:orgName});
 
-        // 2. Create the User and link them to the new Organization's ID
-        const newUser = await User.create({
-            name: userName,
-            email: email,
-            organization: newOrg._id
+        //If organization does not exist then create it
+        if(!existingOrg){
+            existingOrg=await Organization.create({name:orgName});
+            console.log(`Created new Organization: ${existingOrg.orgName} with Id ${existingOrg._id}`);
+        }
+        else{
+            console.log(`Joined existing Organization: ${existingOrg.name} with Id ${existingOrg._id}`);
+        }
+
+        const safeOrgId = existingOrg._id.toString();
+
+        console.log(`Attempting to create User with safeOrgId: ${safeOrgId}`);
+
+        //Create the user and link to Organization
+        const newUser=await User.create({
+            name:userName,
+            email:email,
+            organization:safeOrgId
         });
 
-        res.status(201).json({ message: "User and Org created!", user: newUser });
-    } catch (error) {
+        res.status(201).json({message:'user created', user:newUser});
+    }
+    catch(error){
         console.error(error);
-        res.status(500).json({ error: "Something went wrong" });
+        res.status(500).json({error:"Something went wrong"});
     }
 });
 
