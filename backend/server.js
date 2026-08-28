@@ -3,16 +3,51 @@ const mongoose=require('mongoose');
 const cors=require('cors');
 require('dotenv').config();
 
-//Import routes
+//Importing HTTP and Socket.io
+const http=require('http');
+const {Server}=require('socket.io');
+
+//Importing routes
 const userRoutes=require('./routes/userRoutes');
 const taskRoutes=require('./routes/taskRoutes');
 
-//initialize express app
+//Initializing express app
 const app=express();
 
 //Middleware (allows us to to receive JSON and connects fronend/backned)
 app.use(cors());
+//Middleware to parse JSON string moving over requests
 app.use(express.json());
+
+//Websocket Setup
+const server=http.createServer(app);
+
+//Attaching socket to the server
+const io=new Server(server,{
+    cors:{
+        origin:'http://localhost:5173',
+        methods:["GET", "POST"]
+    }
+});
+
+//Listen for connection
+io.on('connection',(socket)=>{
+    console.log(`A user connected to WebSockets: ${socket.id}`);
+    
+    //Make user join its workspace room
+    socket.on('join_workspace',(orgId)=>{
+        socket.join(orgId);
+        console.log(`User joined Workspace Channel: ${orgId}`);
+    });
+
+    //Listen to disconnect the connection string
+    socket.on('disconnect',()=>{
+        console.log(`User disconected: ${socket.id}`);
+    });
+});
+
+//Put the io for global access. (Can access things in app.set() from anywhere)
+app.set('io',io);
 
 //connect to mongodb
 mongoose.connect(process.env.MONGO_URI)

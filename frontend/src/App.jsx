@@ -5,7 +5,7 @@ function App() {
   const [users, setUsers] = useState([]);
   const [tasks, setTasks]=useState([]);
   const [taskTitle, setTaskTitle]=useState('');
-  const [currentUser, setCurrentUser]=useState('null');
+  const [currentUser, setCurrentUser]=useState(null);
   
   const [formData, setFormData] = useState({ userName: '', email: '', orgName: '' });
   
@@ -33,6 +33,7 @@ function App() {
   const fetchTasks=async (orgId)=>{
     const response=await axios.get(`http://localhost:5000/api/tasks/${orgId}`);
     setTasks(response.data);
+    //console.log(response.data);
   };
 
   const handleLogin = (user) => {
@@ -41,7 +42,7 @@ function App() {
       alert("Hold up! This user has no organization data.");
       return; 
     }
-    const orgId = user.organization._id ? user.organization._id : user.organization;
+    const orgId = user.organization._id ;
     setCurrentUser(user);
     fetchTasks(orgId); 
   };
@@ -63,7 +64,7 @@ function App() {
       <div style={{padding:'20px', fontFamily:'sans-serif'}}>
         <button onClick={()=>setCurrentUser(null)} style={{marginBottom:'20px'}}>Logout</button>
 
-        <h2>{currentUser.organizational} Workspace</h2>
+        <h2>{currentUser.organization?.name || 'My'} Workspace</h2>
         <p>Welcome back, {currentUser.name}</p>
 
         <form onSubmit={handleCreateTask} style={{marginBottom:'30px'}}>
@@ -116,7 +117,7 @@ function App() {
           onClick={()=>handleLogin(user)}
           style={{border:'1px solid black', padding:'10px', margin:'10x 0', cursor:'pointer'}}
           >
-            <strong>{user.name}</strong>- {user.organization ? user.organization.name : 'None'}
+            <strong>{user.name}</strong> - {user.organization ? user.organization.name : 'None'}
             <span style={{float:'right', color:'blue'}}>Login</span>
           </li>
         ))}

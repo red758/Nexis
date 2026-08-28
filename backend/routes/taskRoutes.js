@@ -2,14 +2,23 @@ const express=require('express');
 const router=express.Router();
 const Task=require('../models/Task');
 
+//Create tasks
 router.post('/',async (req,res)=>{
     try{
         const {title, assigneeId, organizationId}=req.body;
 
         const newTask=await Task.create({
-            title:title,
+            title,
             assignee: assigneeId,
             organization:organizationId
+        });
+
+        //Websocket Shout
+        //access the io object
+        const io=req.app.get('io');
+
+        io.to('organiztionId').emit('task_added',{
+            message: `A new task was added: "${title}"` 
         });
 
         res.status(201).json(newTask);
@@ -20,6 +29,7 @@ router.post('/',async (req,res)=>{
     }
 });
 
+//Get tasks of the particular Workspace Organization
 router.get('/:orgId', async (req,res)=>{
     try{
         const {orgId}=req.params
