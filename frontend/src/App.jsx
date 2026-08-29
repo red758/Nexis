@@ -16,6 +16,10 @@ function App() {
   //To store our notifications
   const [notifications, setNotifications]=useState([]);
 
+  //For Query features
+  const [queryResults, setQueryResults]=useState([]);
+  const [queryType, setQueryType]=useState('status'); //Default to grouping by status
+
   // Fetch users when the page loads
   const fetchUsers = async () => {
     try {
@@ -87,6 +91,7 @@ function App() {
     const orgId = user.organization._id ? user.organization._id : user.organization ;
     setCurrentUser(user);
     fetchTasks(orgId); 
+    runDynamicQuery(org, 'status');
   };
 
   const handleLogout = () => {
@@ -151,11 +156,23 @@ function App() {
     }
   };
   
-  if (currentUser){
+  const runDynamicQuery = async (orgId, type)=>{
+    try{
+      const response=await axios.post(`http://localhost:5000/api/tasks/query`,{
+        organizationId:orgId,
+        groupBy:type
+      });
+      setQueryResults(response.data);
+    }catch(error){
+      console.error("Error running query",error);
+    }
+  };
+
+  if(currentUser){
     return(
       <div style={{padding:'20px', fontFamily:'sans-serif', display:'flex', gap:'40px'}}>
         
-        {/* Left column tasks*/}
+        {/*Left column tasks*/}
         <div style={{flex:2}}>
           <button onClick={handleLogout} style={{marginBottom:'20px'}}>Logout</button>
           <h2>{currentUser.organization.name} Workspace</h2>
@@ -164,6 +181,39 @@ function App() {
             <input type="text" placeholder="What needs to be done?" value={taskTitle} onChange={(e)=>setTaskTitle(e.target.value)} required style={{padding:'10px', width:'300px'}}/>
             <button type="submit" style={{padding:'10px', width:'300px'}}>Add Task</button>
           </form>
+
+          {/*Report Section*/}
+          <div style={{marginBottom:'30px', backgroundColor:'#e0e7ff', padding:"15px", borderRadius:"8px", border:"1px solid #c7d2fe"}}>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'15px'}}>
+              <h3 style={{margin:0, color:'#3730a3'}}>Dynamic Reports</h3>
+
+              {/*The Control Panel*/}
+              <select 
+              value={queryType} 
+                onChange={(e)=>{
+                  setQueryType(e.target.value); 
+                  const orgId=currentUser.organization._id ? currentUser.organization._id : currentUser.organization;
+                  runDynamicQuery(orgId, e.target.value);
+                }}
+                style={{padding:'5px', borderRadius:'4px'}}
+              >
+                <option value="status">Group by Status</option>
+                <option value="assignee">Group by Assignee</option>
+              </select>
+            </div>
+
+            {/* Canvas for Results */}
+            <div style={{display:'flex', gap:'10px', flexWrap:'wrap'}}>
+                {queryResults.map((result,index)=>(
+                  <div key={index} style={{backgroundColor:'white', padding:'10px 15px', borderRadius:'5px', boxShadow:'0 1px 2px rgba(0,0,0,0.1)'}}>
+                    <span style={{color:'gray', fontSize:'12px', display:'block'}}>
+                      {result._id}
+                    </span>
+                    <strong style={{fontSize:'20px'}}>{result.count}</strong>
+                  </div>
+                ))}
+            </div>
+          </div>
 
           <h3>Project Tasks</h3>
           <ul style={{listStyleType:'none', padding:0}}>
