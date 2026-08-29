@@ -35,23 +35,27 @@ function App() {
     if(currentUser){
         //Get the organization id
         const orgId =currentUser.organization._id?currentUser.organization._id : currentUser.organization;
-
         //Tell the server to put us this organization channel
         socket.emit('join_workspace',orgId);
-
         //Keep listening for the task added shout from the server
+        
         socket.on('task_added',(data)=>{
           console.log('Radio message received');          
           //Add messages to our notifiactions list
-          setNotifications((prev)=>[data.message,...prev]);
-
+          setNotifications((prev)=>[data.message, ...prev]);
           //To get instant view of new task added by different people in same organization
           fetchTasks(orgId);        
+        });
+
+        socket.on('task_updated',(data)=>{
+          setNotifications((prev)=>[data.message, ...prev]);
+          fetchTasks(orgId);
         });
 
       //To disconnect the socket
       return()=>{
         socket.off('task_added');
+        socket.off('task_updated');
       };
     }
   },[currentUser]);
@@ -131,6 +135,21 @@ function App() {
       console.error("Error deleting the task", error);
     }
   };
+
+  const handelUpdateStatus = async (taskId, newStatus, taskTitle)=>{
+    const orgId=currentUser.organization._id ? currentUser.organization._id : currentUser.organization;
+    try{
+      await axios.put(`http://localhost:5000/api/tasks/${taskId}`,{
+        status:newStatus,
+        organizationId:orgId,
+        title:taskTitle,
+        userName:currentUser.name
+      });
+      fetchTasks(orgId);
+    }catch(error){
+      console.error("Error updating the task: ",error);
+    }
+  };
   
   if (currentUser){
     return(
@@ -149,12 +168,16 @@ function App() {
           <h3>Project Tasks</h3>
           <ul style={{listStyleType:'none', padding:0}}>
             {tasks.map(task=>(
-              <li key={task._id} style={{border:'1px solid black', padding:'15px', margiin:'10px 0', borderRadius:'5px'}}>
+              <li key={task._id} style={{border:'1px solid black', padding:'15px', margin:'10px 0', borderRadius:'5px'}}>
                 <button onClick={()=>handleDeleteTask(task._id)} style={{float:'right', backgroundColor:'red', color:'white', border:'none', padding:'5px 10px', cursor:'pointer', borderRadius:'3px', marginLeft:'10px'}}>X</button>
+                <select value={task.status} onChange={(e)=>{handelUpdateStatus(task._id, e.target.value, task.title)}} style={{float:'right', padding:'5px', borderRadius:'3px', cursor:'pointer'}}>
+                  <option value="Todo">Todo</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Done">Done</option>  
+                </select>
                 <strong>{task.title}</strong>
-                <span style={{float:'right', backgroundColor:'#eee', padding:'5px'}}>{task.status}</span>
                 <p style={{margin:'5px 0 0 0', fontSize:'12px', color:'gray'}}>
-                  Assigned to: {task.assignee ? task.assignee.name : 'Unasssigned'}
+                  Assigned to: {task.assignee ? task.assignee.name : 'Unassigned'}
                 </p>
               </li>
             ))}

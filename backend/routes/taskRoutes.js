@@ -59,4 +59,23 @@ router.get('/:orgId', async (req,res)=>{
     }
 });
 
+router.put('/:id',async (req,res)=>{
+    try{
+        const {status, organizationId, title, userName} = req.body;
+        const updatedTask = await Task.findByIdAndUpdate(
+            req.params.id,
+            {status:status},
+            {new:true} //tells to return the updated version of task
+        );
+        const io=req.app.get('io');
+        io.to(organizationId).emit('task_updated',{
+            message:`${userName} changed "${title}" status to ${status}`
+        });
+        res.status(200).json(updatedTask);
+    }catch(error){
+        console.error(error);
+        res.status(500).json({error:"Failed to update the task"});
+    }
+});
+
 module.exports=router;
