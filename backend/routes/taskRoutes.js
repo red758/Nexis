@@ -2,6 +2,23 @@ const express=require('express');
 const router=express.Router();
 const Task=require('../models/Task');
 
+//Delete a task from organization 
+router.delete('/:id', async (req,res)=>{
+    try{
+        //Extracting id from route parameters
+        const taskId=req.params.id;
+        console.log(taskId);
+        if(!taskId){
+            res.status(404).json({message:"Task not found"});
+        }
+        await Task.findByIdAndDelete(taskId);
+        res.status(200).json({message:'Task deleted successfully'});
+    }catch(error){
+        console.error(error);
+        res.status(500).json({error:'Failed to delete Task'});
+    }
+});
+
 //Create tasks
 router.post('/',async (req,res)=>{
     try{

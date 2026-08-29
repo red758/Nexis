@@ -5,34 +5,30 @@ const User = require('../models/User');
 const Organization = require('../models/Organization');
 
 //Delete a User from database
-router.post('/delete/:userId', async(req,res)=>{
+router.delete('/:id', async(req,res)=>{
     try{
-        const rem=req.params.id;
-        console.log(rem);
-        if (!rem){
+        //Extracting id from route parameters
+        const userId=req.params.id;
+        console.log(userId);
+        //early fallback if user id dont exist
+        if (!userId){
             console.log('Id not found');
-            return res.status(404).json({message:'User not found in Database'});
-        }
-        const deletedUser= await User.findByIdAndDelete(rem);
-
-        if(!deletedUser){
-            return res.status(404).json({message:'User not found in Database'});
-        }
+            return res.status(404).json({message:'User not found'});
+        } 
+        await User.findByIdAndDelete(userId);
         res.status(200).json({message:"Successfully deleted user from database"});
     }
     catch{
         res.status(500).json({message:"Server database error", error:error.message});
     }
-})
+});
 
 //Create a new Organization and a User inside it
 router.post('/register',async(req,res)=>{
     try{
         const {userName, email, orgName}=req.body;
-
-        //Check if organization already exist
+        //Checking if organization already exist
         let existingOrg = await Organization.findOne({name:orgName});
-
         //If organization does not exist then create it
         if(!existingOrg){
             existingOrg=await Organization.create({name:orgName});
@@ -41,18 +37,14 @@ router.post('/register',async(req,res)=>{
         else{
             console.log(`Joined existing Organization: ${existingOrg.name} with Id ${existingOrg._id}`);
         }
-
         const safeOrgId = existingOrg._id.toString();
-
         console.log(`Attempting to create User with safeOrgId: ${safeOrgId}`);
-
         //Create the user and link to Organization
         const newUser=await User.create({
             name:userName,
             email:email,
             organization:safeOrgId
         });
-
         res.status(201).json({message:'user created', user:newUser});
     }
     catch(error){

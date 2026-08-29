@@ -109,23 +109,26 @@ function App() {
     fetchTasks(orgId);
   };
 
-  const deleteUser = async (user_del)=>{
-    const userId= user_del._id ? user_del._id : user_del;
-    console.log(`delete working ${userId}`);
-    //filtering the user from frontend
-    const updatedUser=users.filter(user => user._id != userId)
-    //updating the list on frontend
-    setUsers(updatedUser);
-    console.log('reached before http request');
-    const response=await axios.post(`http://localhost:5000/api/users/delete/${userId}`);
-    console.log("recaher after http request");
-    if(!response){
-      console.log('user deleted');
+  const handleDeleteUser = async (userId)=>{
+    if(window.confirm("DO you want to delete this User?"));
+    try{
+      const deletedUser = await axios.delete(`http://localhost:5000/api/users/${userId}`);
+      fetchUsers();
+    }catch(error){
+      console.error("Error deleting user", error);
     }
-    else{
-      console.log(response);
+  };
+
+  const handleDeleteTask = async (taskId)=>{
+    if(window.confirm("Do you want to delete this task?"));
+    try{
+      await axios.delete(`http://localhost:5000/api/tasks/${taskId}`);
+      const orgId= currentUser.organization._id ? currentUser.organization._id : currentUser.organization;
+      fetchTasks(orgId);
+    }catch(error){
+      console.error("Error deleting the task", error);
     }
-  }
+  };
   
   if (currentUser){
     return(
@@ -151,13 +154,12 @@ function App() {
           <ul style={{listStyleType:'none', padding:0}}>
             {tasks.map(task=>(
               <li key={task._id} style={{border:'1px solid black', padding:'15px', margiin:'10px 0', borderRadius:'5px'}}>
-                
+                <button onClick={()=>handleDeleteTask(task._id)} style={{float:'right', backgroundColor:'red', color:'white', border:'none', padding:'5px 10px', cursor:'pointer', borderRadius:'3px', marginLeft:'10px'}}>X</button>
                 <strong>{task.title}</strong>
-                
-                <span stylel={{float:'right', backgroundColor:'#eee', padding:'5px'}}>task.status</span>
-
-                <p style={{margin:'5px 0 0 0', fontSize:'12px', color:'gray'}}>Assigned to: {task.assignee ? task.assignee.name : 'Unassigned'}</p>
-              
+                <span style={{float:'right', backgroundColor:'#eee', padding:'5px'}}>{task.status}</span>
+                <p style={{margin:'5px 0 0 0', fontSize:'12px', color:'gray'}}>
+                  Assigned to: {task.assignee ? task.assignee.name : 'Unasssigned'}
+                </p>
               </li>
             ))}
           </ul>
@@ -196,12 +198,14 @@ function App() {
       <h3>Simulate Login (Click a user)</h3>
       <ul style={{listStyleType:'none', padding:0}}>
         {users.map((user)=>(
-          <li key={user._id} style={{border:'1px solid #ccc', padding:'10px', margin:'10px 0', cursor:'pointer', display:'flex'}}>
-            <strong>{user.name}</strong> - {user.organization ? user.organization.name : 'None'}
-            <div style={{display:'flex', float:'right'}}>
-            <span onClick={()=>handleLogin(user)} style={{float:'left', color:'blue'}}>Login</span>
-            <span onClick={()=>deleteUser(user)} style={{float:'right',color:'red'}}>Delete</span>
+          <li key={user._id} style={{border:'1px solid #ccc', padding:'10px', margin:'10px 0', cursor:'pointer', display:'flex', justifyContent:"space-between", alignItems:"center"}}>
+            
+            <div onClick={()=>handleLogin(user)}style={{cursor:'pointer', flex:1}}>
+              <strong>{user.name}</strong> - {user.organization ? user.organization.name : 'None'}
             </div>
+
+            <button onClick={(e)=>{e.stopPropagation(); handleDeleteUser(user._id);}} style={{backgroundColor:'darkred', color:'white', border:'none', padding:'5px 10px', cursor:'pointer', borderRadius:'3px'}}>Delete User</button>
+          
           </li>
         ))}
       </ul>
