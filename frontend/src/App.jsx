@@ -88,31 +88,33 @@ function App() {
   const handleLogout = () => {
     //Cut the live connection immediately. (This stops background listeners from running and prevents memory leaks.)
     socket.disconnect(); 
-
     //Turn the socket back on so it is fresh and ready (For the next person who logs in on this computer.)
     socket.connect(); 
-
     //Clear the user state in React.(This instantly takes them out of the dashboard view.)
     setCurrentUser(null); 
   };
 
 
-  const handleCreateTask = async (e) => {
+  const handleCreateTask = async (e, userName) => {
     e.preventDefault();
     const orgId = currentUser.organization._id ? currentUser.organization._id : currentUser.organization;
-    await axios.post('http://localhost:5000/api/tasks', {
-      title: taskTitle,
-      assigneeId: currentUser._id,
-      organizationId: orgId 
-    });
-    setTaskTitle('');
-    fetchTasks(orgId);
+    try{
+      await axios.post(`http://localhost:5000/api/tasks/${userName}`, {
+        title: taskTitle,
+        assigneeId: currentUser._id,
+        organizationId: orgId 
+      });
+      setTaskTitle('');
+      fetchTasks(orgId);
+    }catch(error){
+      console.error("Error creating task: ",error);
+    }
   };
 
   const handleDeleteUser = async (userId)=>{
     if(window.confirm("DO you want to delete this User?"));
     try{
-      const deletedUser = await axios.delete(`http://localhost:5000/api/users/${userId}`);
+      await axios.delete(`http://localhost:5000/api/users/${userId}`);
       fetchUsers();
     }catch(error){
       console.error("Error deleting user", error);
@@ -136,18 +138,12 @@ function App() {
         
         {/* Left column tasks*/}
         <div style={{flex:2}}>
-          
           <button onClick={handleLogout} style={{marginBottom:'20px'}}>Logout</button>
-          
           <h2>{currentUser.organization.name} Workspace</h2>
-          
           <p>Welcome back, {currentUser.name}</p>
-
-          <form onSubmit={handleCreateTask} style={{marginBottom:'30px'}}>
-          
-            <input type="text" placeholder="What needs to be done?" valule={taskTitle} onChange={(e)=>setTaskTitle(e.target.value)} required style={{padding:'10px', width:'300px'}}/>
+          <form onSubmit={(e)=>handleCreateTask(e, currentUser.name)} style={{marginBottom:'30px'}}>
+            <input type="text" placeholder="What needs to be done?" value={taskTitle} onChange={(e)=>setTaskTitle(e.target.value)} required style={{padding:'10px', width:'300px'}}/>
             <button type="submit" style={{padding:'10px', width:'300px'}}>Add Task</button>
-          
           </form>
 
           <h3>Project Tasks</h3>
@@ -199,11 +195,9 @@ function App() {
       <ul style={{listStyleType:'none', padding:0}}>
         {users.map((user)=>(
           <li key={user._id} style={{border:'1px solid #ccc', padding:'10px', margin:'10px 0', cursor:'pointer', display:'flex', justifyContent:"space-between", alignItems:"center"}}>
-            
             <div onClick={()=>handleLogin(user)}style={{cursor:'pointer', flex:1}}>
               <strong>{user.name}</strong> - {user.organization ? user.organization.name : 'None'}
             </div>
-
             <button onClick={(e)=>{e.stopPropagation(); handleDeleteUser(user._id);}} style={{backgroundColor:'darkred', color:'white', border:'none', padding:'5px 10px', cursor:'pointer', borderRadius:'3px'}}>Delete User</button>
           
           </li>

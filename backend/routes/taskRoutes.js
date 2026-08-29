@@ -20,10 +20,10 @@ router.delete('/:id', async (req,res)=>{
 });
 
 //Create tasks
-router.post('/',async (req,res)=>{
+router.post('/:name',async (req,res)=>{
     try{
         const {title, assigneeId, organizationId}=req.body;
-
+        const userName=req.params.name;
         const newTask=await Task.create({
             title,
             assignee: assigneeId,
@@ -34,7 +34,7 @@ router.post('/',async (req,res)=>{
         const io=req.app.get('io');
 
         io.to(organizationId).emit('task_added',{
-            message: `A new task was added: "${title}"` 
+            message: `A new task was added: ${title} by ${userName}` 
         });
 
         res.status(201).json(newTask);
