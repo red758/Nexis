@@ -91,7 +91,7 @@ function App() {
     const orgId = user.organization._id ? user.organization._id : user.organization ;
     setCurrentUser(user);
     fetchTasks(orgId); 
-    runDynamicQuery(org, 'status');
+    runDynamicQuery(orgId, 'status');
   };
 
   const handleLogout = () => {
