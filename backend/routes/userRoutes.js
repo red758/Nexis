@@ -4,7 +4,28 @@ const router = express.Router();
 const User = require('../models/User');
 const Organization = require('../models/Organization');
 
-// Route 1: Create a new Organization and a User inside it
+//Delete a User from database
+router.post('/delete/:userId', async(req,res)=>{
+    try{
+        const rem=req.params.id;
+        console.log(rem);
+        if (!rem){
+            console.log('Id not found');
+            return res.status(404).json({message:'User not found in Database'});
+        }
+        const deletedUser= await User.findByIdAndDelete(rem);
+
+        if(!deletedUser){
+            return res.status(404).json({message:'User not found in Database'});
+        }
+        res.status(200).json({message:"Successfully deleted user from database"});
+    }
+    catch{
+        res.status(500).json({message:"Server database error", error:error.message});
+    }
+})
+
+//Create a new Organization and a User inside it
 router.post('/register',async(req,res)=>{
     try{
         const {userName, email, orgName}=req.body;
@@ -40,7 +61,7 @@ router.post('/register',async(req,res)=>{
     }
 });
 
-// Route 2: Get all users and their organization details
+//Get all users and their organization details
 router.get('/', async (req, res) => {
     try {
         // .populate() tells MongoDB to fetch the actual Organization data, not just the ID!

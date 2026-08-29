@@ -110,11 +110,21 @@ function App() {
   };
 
   const deleteUser = async (user_del)=>{
-    //console.log(`'delete working ${user_del._id}'`);
+    const userId= user_del._id ? user_del._id : user_del;
+    console.log(`delete working ${userId}`);
     //filtering the user from frontend
-    const updatedUser=users.filter(user => user._id != user_del._id)
+    const updatedUser=users.filter(user => user._id != userId)
     //updating the list on frontend
     setUsers(updatedUser);
+    console.log('reached before http request');
+    const response=await axios.post(`http://localhost:5000/api/users/delete/${userId}`);
+    console.log("recaher after http request");
+    if(!response){
+      console.log('user deleted');
+    }
+    else{
+      console.log(response);
+    }
   }
   
   if (currentUser){
