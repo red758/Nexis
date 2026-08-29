@@ -41,6 +41,7 @@ function App() {
 
         //Keep listening for the task added shout from the server
         socket.on('task_added',(data)=>{
+          console.log('Radio message received');          
           //Add messages to our notifiactions list
           setNotifications((prev)=>[data.message,...prev]);
 
@@ -85,21 +86,14 @@ function App() {
   };
 
   const handleLogout = () => {
-    //Cut the live connection immediately.
-    //This stops background listeners from running and prevents memory leaks.
+    //Cut the live connection immediately. (This stops background listeners from running and prevents memory leaks.)
     socket.disconnect(); 
 
-    //Turn the socket back on so it is fresh and ready 
-    //for the next person who logs in on this computer.
+    //Turn the socket back on so it is fresh and ready (For the next person who logs in on this computer.)
     socket.connect(); 
 
-    //Clear the user state in React.
-    //This instantly takes them out of the dashboard view.
+    //Clear the user state in React.(This instantly takes them out of the dashboard view.)
     setCurrentUser(null); 
-
-    //Wipe the security key from the browser's local vault (if you are using one).
-    //This ensures no one can refresh the page to sneak back into the account.
-    localStorage.removeItem('token'); 
   };
 
 
@@ -114,6 +108,14 @@ function App() {
     setTaskTitle('');
     fetchTasks(orgId);
   };
+
+  const deleteUser = async (user_del)=>{
+    //console.log(`'delete working ${user_del._id}'`);
+    //filtering the user from frontend
+    const updatedUser=users.filter(user => user._id != user_del._id)
+    //updating the list on frontend
+    setUsers(updatedUser);
+  }
   
   if (currentUser){
     return(
@@ -184,9 +186,12 @@ function App() {
       <h3>Simulate Login (Click a user)</h3>
       <ul style={{listStyleType:'none', padding:0}}>
         {users.map((user)=>(
-          <li key={user._id} onClick={()=>handleLogin(user)} style={{border:'1px solid #ccc', padding:'10px', margin:'10px 0', cursor:'pointer'}}>
+          <li key={user._id} style={{border:'1px solid #ccc', padding:'10px', margin:'10px 0', cursor:'pointer', display:'flex'}}>
             <strong>{user.name}</strong> - {user.organization ? user.organization.name : 'None'}
-            <span style={{float:'right', color:'blue'}}>Login</span>
+            <div style={{display:'flex', float:'right'}}>
+            <span onClick={()=>handleLogin(user)} style={{float:'left', color:'blue'}}>Login</span>
+            <span onClick={()=>deleteUser(user)} style={{float:'right',color:'red'}}>Delete</span>
+            </div>
           </li>
         ))}
       </ul>

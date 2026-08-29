@@ -13,11 +13,10 @@ router.post('/',async (req,res)=>{
             organization:organizationId
         });
 
-        //Websocket Shout
-        //access the io object
+        //Websocket Shout (Access the io object)
         const io=req.app.get('io');
 
-        io.to('organiztionId').emit('task_added',{
+        io.to(organizationId).emit('task_added',{
             message: `A new task was added: "${title}"` 
         });
 
