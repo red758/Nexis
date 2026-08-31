@@ -5,6 +5,16 @@ import {io} from 'socket.io-client';
 //We create the connection outside the component so it doesnt re-connect every time the component re render
 const socket=io('http://localhost:5000');
 
+axios.interceptors.request.use((config)=>{
+  const token=localStorage.getItem('nexis_token');
+  if(token){
+    config.headers['Authorization']=`Bearer ${token}`;
+  }
+  return config;
+}, (error)=>{
+  return Promise.reject(error);
+});
+
 function App() {
   const [currentUser, setCurrentUser]=useState(null);
   const [tasks, setTasks]=useState([]);
