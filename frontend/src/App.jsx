@@ -6,12 +6,9 @@ import {io} from 'socket.io-client';
 const socket=io('http://localhost:5000');
 
 function App() {
-  const [users, setUsers] = useState([]);
+  const [currentUser, setCurrentUser]=useState(null);
   const [tasks, setTasks]=useState([]);
   const [taskTitle, setTaskTitle]=useState('');
-  const [currentUser, setCurrentUser]=useState(null);
-  
-  const [formData, setFormData] = useState({ userName: '', email: '', orgName: '' });
   
   //To store our notifications
   const [notifications, setNotifications]=useState([]);
@@ -20,27 +17,18 @@ function App() {
   const [queryResults, setQueryResults]=useState([]);
   const [queryType, setQueryType]=useState('status'); //Default to grouping by status
 
-  // Fetch users when the page loads
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/api/users');
-      setUsers(response.data);
-    } catch (error) {
-      console.error("Error fetching users", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  //Registration data
+  const [registerData, setRegisterData]=useState({userName:'', email:'', password:'', orgName:''});
+  const [loginData, setLoginData]=useState({email:'', password:''});
+  const [isLoginMode, setIsLoginMode]=useState(true);
 
   //Websocket setup
   useEffect(()=>{
     if(currentUser){
         //Get the organization id
-        const orgId =currentUser.organization._id?currentUser.organization._id : currentUser.organization;
+        const orgId =currentUser.organization._id ? currentUser.organization._id : currentUser.organization;
         //Tell the server to put us this organization channel
-        socket.emit('join_workspace',orgId);
+        socket.emit('join_workspace', orgId);
         //Keep listening for the task added shout from the server
         
         socket.on('task_added',(data)=>{
@@ -49,11 +37,13 @@ function App() {
           setNotifications((prev)=>[data.message, ...prev]);
           //To get instant view of new task added by different people in same organization
           fetchTasks(orgId);        
+          runDynamicQuery(orgId, queryType);
         });
 
         socket.on('task_updated',(data)=>{
           setNotifications((prev)=>[data.message, ...prev]);
           fetchTasks(orgId);
+          runDynamicQuery(orgId, queryType);
         });
 
       //To disconnect the socket
@@ -62,14 +52,7 @@ function App() {
         socket.off('task_updated');
       };
     }
-  },[currentUser]);
-
-  const handleRegister=async (e)=>{
-    e.preventDefault();
-    await axios.post('http://localhost:5000/api/users/register',formData);
-    setFormData({userName:'', email:'', orgName:''});
-    fetchUsers();
-  };
+  },[currentUser, queryType]);
 
   const fetchTasks=async (orgId)=>{
     try{
@@ -77,36 +60,60 @@ function App() {
       setTasks(response.data);
     }
     catch(error){
-      console.error('Error fetching tasks',error);
+      console.error('Error fetching tasks: ',error);
     }
     //console.log(response.data); 
   };
 
-  const handleLogin = (user) => {
-    //console.log("CLICKED USER DATA:", user);
-    if (!user.organization) {
-      alert("This user has no organization data.");
-      return; 
+  const handleRegister=async (e)=>{
+    e.preventDefault();
+    try{
+      await axios.post('http://localhost:5000/api/users/register', registerData);
+      alert("Registration succesfull you can now login");
+      setIsLoginMode(true);
+    }catch(error){
+      console.error("Registration failed: ",error);
+      alert(error.response?.data?.error || "Registration failed");
     }
-    const orgId = user.organization._id ? user.organization._id : user.organization ;
-    setCurrentUser(user);
-    fetchTasks(orgId); 
-    runDynamicQuery(orgId, 'status');
+  };
+  
+  const handleLogin = async (e) => {
+    //console.log("CLICKED USER DATA:", user);
+    e.preventDefault();
+    console.log("🟢 LOGIN BUTTON WAS CLICKED!");
+    console.log("Data ready to send:", loginData);
+    try{
+      const response= await axios.post('http://localhost:5000/api/users/login', loginData);
+      //Save JWT token in local storage
+      localStorage.setItem('nexis_token', response.data.token);
+      
+      const user=response.data.user;
+      setCurrentUser(user);
+
+      const orgId=user.organization._id ? user.organization._id : user.organization;
+      fetchTasks(orgId);
+      runDynamicQuery(orgId, 'status');
+    }catch(error){
+      alert(error.response?.data?.error || "Invalid email or password");
+    }
   };
 
   const handleLogout = () => {
+    //Remove JWT token from local storage
+    localStorage.removeItem('nexis_token');
+    setCurrentUser(null);
+    setTasks([]);
     //Cut the live connection immediately. (This stops background listeners from running and prevents memory leaks.)
     socket.disconnect(); 
-    //Turn the socket back on so it is fresh and ready (For the next person who logs in on this computer.)
+    //Turn the socket back on so it is ready for the next person who logins on this computer.
     socket.connect(); 
-    //Clear the user state in React.(This instantly takes them out of the dashboard view.)
-    setCurrentUser(null); 
   };
 
 
-  const handleCreateTask = async (e, userName) => {
+  const handleCreateTask = async (e) => {
     e.preventDefault();
     const orgId = currentUser.organization._id ? currentUser.organization._id : currentUser.organization;
+    const userName=currentUser.name;
     try{
       await axios.post(`http://localhost:5000/api/tasks/${userName}`, {
         title: taskTitle,
@@ -115,27 +122,19 @@ function App() {
       });
       setTaskTitle('');
       fetchTasks(orgId);
+      runDynamicQuery(orgId, queryType);
     }catch(error){
       console.error("Error creating task: ",error);
     }
   };
 
-  const handleDeleteUser = async (userId)=>{
-    if(window.confirm("DO you want to delete this User?"));
-    try{
-      await axios.delete(`http://localhost:5000/api/users/${userId}`);
-      fetchUsers();
-    }catch(error){
-      console.error("Error deleting user", error);
-    }
-  };
-
   const handleDeleteTask = async (taskId)=>{
     if(window.confirm("Do you want to delete this task?"));
+    const orgId= currentUser.organization._id ? currentUser.organization._id : currentUser.organization;
     try{
       await axios.delete(`http://localhost:5000/api/tasks/${taskId}`);
-      const orgId= currentUser.organization._id ? currentUser.organization._id : currentUser.organization;
       fetchTasks(orgId);
+      runDynamicQuery(orgId, queryType);
     }catch(error){
       console.error("Error deleting the task", error);
     }
@@ -151,7 +150,7 @@ function App() {
         userName:currentUser.name
       });
       fetchTasks(orgId);
-      
+      runDynamicQuery(orgId, queryType);
     }catch(error){
       console.error("Error updating the task: ",error);
     }
@@ -165,7 +164,7 @@ function App() {
       });
       setQueryResults(response.data);
     }catch(error){
-      console.error("Error running query",error);
+      console.error("Error running query: ",error);
     }
   };
 
@@ -175,14 +174,10 @@ function App() {
         
         {/*Left column tasks*/}
         <div style={{flex:2}}>
-          <button onClick={handleLogout} style={{marginBottom:'20px'}}>Logout</button>
+          <button onClick={handleLogout} style={{marginBottom:'20px', padding:'8px', cursor:'pointer'}}>Logout</button>
           <h2>{currentUser.organization.name} Workspace</h2>
           <p>Welcome back, {currentUser.name}</p>
-          <form onSubmit={(e)=>handleCreateTask(e, currentUser.name)} style={{marginBottom:'30px'}}>
-            <input type="text" placeholder="What needs to be done?" value={taskTitle} onChange={(e)=>setTaskTitle(e.target.value)} required style={{padding:'10px', width:'300px'}}/>
-            <button type="submit" style={{padding:'10px', width:'300px'}}>Add Task</button>
-          </form>
-
+          
           {/*Report Section*/}
           <div style={{marginBottom:'30px', backgroundColor:'#e0e7ff', padding:"15px", borderRadius:"8px", border:"1px solid #c7d2fe"}}>
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'15px'}}>
@@ -216,6 +211,12 @@ function App() {
             </div>
           </div>
 
+          {/*Form for creating tasks*/}
+          <form onSubmit={handleCreateTask} style={{marginBottom:'30px'}}>
+            <input type="text" placeholder="What needs to be done" value={taskTitle} onChange={(e)=>setTaskTitle(e.target.value)} required style={{padding:'10px', width:'300px'}}/>
+            <button type="submit" style={{padding:'10px', backgroundColor:'blue', color:'white'}}>Add Task</button>
+          </form>
+
           <h3>Project Tasks</h3>
           <ul style={{listStyleType:'none', padding:0}}>
             {tasks.map(task=>(
@@ -236,7 +237,7 @@ function App() {
         </div>
 
         {/*Right column: Live notifications*/}
-        <div style={{flex:1, backgroundColor:'#f9f9f9', padding:'20px', borderRadius:'8px', border:'1px solid #ddd', maxHeight:'500px', overflow:'auto'}}>
+        <div style={{flex:1, backgroundColor:'#f9f9f9', padding:'20px', borderRadius:'8px', border:'1px solid #ddd', maxHeight:'500px', overflowY:'auto'}}>
           <h3>Live Notifications</h3>
           {notifications.length===0 ? (
             <p style={{color:'gray', fontSize:'14px'}}>No New Notifications...</p>
@@ -255,29 +256,49 @@ function App() {
   }
 
   return(
-    <div style={{fontFamily:'sans-serif', maxWidth:'600px', margin:'0 auto', padding:'20px'}}>
-      <h2>Nexis Login / Register</h2>
-      <form onSubmit={handleRegister} style={{display:'flex', flexDirection:'column', gap:'10px', marginBottom:'30px'}}>
-        <input type="text" name="userName" placeholder="Your Name" value={formData.userName} onChange={e=>setFormData({...formData, userName:e.target.value})} required/>
-        <input type="text" name="email" placeholder="Email" value={formData.email} onChange={e=>setFormData({...formData, email:e.target.value})} required/>
-        <input type="text" name="orgName" placeholder="Oganization Name" value={formData.orgName} onChange={e=>setFormData({...formData, orgName:e.target.value})} required/>
+    <div style={{fontFamily:'sans-serif', maxWidth:'400px', margin:'100px auto', padding:'30px', border:'1px solid #ccc', borderRadius:'8px', boxShadow:'0 4px 6px rgba(0,0,0,0.1)'}}>
+      <h2 style={{textAlign:'center'}}>Nexis Workspace</h2>
 
-        <button type="submit" style={{padding:'10px', backgroundColor:'black', color:'white'}}>Create Account</button>
-      </form>
+      {/*Toggle for registration and login page*/}
+      <div style={{ display:"flex", marginBottom:"20px"}}>
+        <button onClick=
+          {()=>setIsLoginMode(true)} 
+          style={{flex:1, padding:"10px", backgroundColor:isLoginMode ? 'black' :'#eee', 
+          color: isLoginMode ? 'white' : 'black', 
+          border:'none', cursor:'pointer'}}
+        >
+          Login
+        </button>
 
-      <h3>Simulate Login (Click a user)</h3>
-      <ul style={{listStyleType:'none', padding:0}}>
-        {users.map((user)=>(
-          <li key={user._id} style={{border:'1px solid #ccc', padding:'10px', margin:'10px 0', cursor:'pointer', display:'flex', justifyContent:"space-between", alignItems:"center"}}>
-            <div onClick={()=>handleLogin(user)}style={{cursor:'pointer', flex:1}}>
-              <strong>{user.name}</strong> - {user.organization ? user.organization.name : 'None'}
-            </div>
-            <button onClick={(e)=>{e.stopPropagation(); handleDeleteUser(user._id);}} style={{backgroundColor:'darkred', color:'white', border:'none', padding:'5px 10px', cursor:'pointer', borderRadius:'3px'}}>Delete User</button>
-          
-          </li>
-        ))}
-      </ul>
+        <button onClick=
+        {()=>setIsLoginMode(false)}
+        style={{flex:1, padding:'10px', backgroundColor:isLoginMode ? '#eee' :'black',
+          color:isLoginMode ? 'black' : 'white',
+          border:'none', cursor:'pointer'}}
+        >
+          Register
+        </button>
+      </div>
+      
+      {isLoginMode ? (
+        /*Login Form*/
+        <form onSubmit={handleLogin} style={{display:'flex', flexDirection:'column', gap:'15px'}}>
+          <input type="email" placeholder="Email" value={loginData.email} onChange={e=>setLoginData({...loginData, email:e.target.value})} required style={{padding:'10px'}}/>
+          <input type="password" placeholder="Password" value={loginData.password} onChange={e=>setLoginData({...loginData, password:e.target.value})} required style={{padding:'10px'}}/>
+          <button type="submit" style={{padding:'12px', backgroundColor:'blue', color:'white', border:'none', borderRadius:'4px', cursor:'pointer'}}>Secure Login</button>
+        </form>
+      ):(
+        /*Register Form*/
+        <form onSubmit={handleRegister} style={{display:'flex', flexDirection:'column', gap:'15px'}}>
+          <input type="text" placeholder="Full Name" value={registerData.userName} onChange={e=>setRegisterData({...registerData, userName:e.target.value})} required style={{padding:'10px'}}/>
+          <input type="email" placeholder="Email" value={registerData.email} onChange={e=>setRegisterData({...registerData, email:e.target.value})} required style={{padding:'10px'}}/>
+          <input type="text" placeholder="Create a Password" value={registerData.password} onChange={e=>setRegisterData({...registerData, password:e.target.value})} required style={{padding:'10px'}}/>
+          <input type="text" placeholder="Organization Name" value={registerData.orgName} onChange={e=>setRegisterData({...registerData, orgName:e.target.value})} required style={{padding:'10px'}}/>
+          <button type="submit" style={{padding:'12px', backgroundColor:'green', color:'white', border:'none', borderRadius:'4px', cursor:'pointer'}}>Create Account</button>
+        </form>
+      )}
     </div>
+      
   );
 
 }

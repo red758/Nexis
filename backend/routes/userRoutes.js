@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt=require('bcryptjs');
-const jwt=require('jsonwebtokens');
+const jwt=require('jsonwebtoken');
 const User = require('../models/User');
 const Organization = require('../models/Organization');
 
@@ -20,7 +20,7 @@ router.post('/register', async(req, res)=>{
         const salt=await bcrypt.genSalt(10);
         const hashedPassword=await bcrypt.hash(password, salt);
 
-        const newUser=await User.create({
+        await User.create({
             name:userName,
             email:email,
             password:hashedPassword,
@@ -36,6 +36,9 @@ router.post('/register', async(req, res)=>{
 
 router.post('/login', async(req, res)=>{
     try{
+
+    //console.log("Email trying to log in:", req.body.email);
+
         const {email, password}=req.body;
         const user =await User.findOne({email}).populate('organization');
         if(!user){
@@ -48,10 +51,10 @@ router.post('/login', async(req, res)=>{
         const token=jwt.sign(
             {userId:user._id, orgId:user.organization._id},
             process.env.JWT_SECRET,
-            {expressIn:'id'}
+            {expiresIn:'1d'}
         );
         res.status(200).json({
-            message:'Login Succesful',
+            message:'Login Succesfull',
             token:token,
             user:{
                 _id:user._id,
