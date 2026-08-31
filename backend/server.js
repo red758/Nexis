@@ -10,6 +10,7 @@ const {Server}=require('socket.io');
 //Importing routes
 const userRoutes=require('./routes/userRoutes');
 const taskRoutes=require('./routes/taskRoutes');
+const queryRoutes=require('./routes/queryRoutes');
 
 //Initializing express app
 const app=express();
@@ -57,6 +58,7 @@ mongoose.connect(process.env.MONGO_URI)
 //Use new routes. Any requests to /api/users will go to userRoutes.js
 app.use('/api/users',userRoutes);
 app.use('/api/tasks',taskRoutes);
+app.use('/api/query',queryRoutes);
 
 // a simple test route
 /*app.get('/api/health',(req,res)=>{

@@ -151,6 +151,7 @@ function App() {
         userName:currentUser.name
       });
       fetchTasks(orgId);
+      
     }catch(error){
       console.error("Error updating the task: ",error);
     }
@@ -158,7 +159,7 @@ function App() {
   
   const runDynamicQuery = async (orgId, type)=>{
     try{
-      const response=await axios.post(`http://localhost:5000/api/tasks/query`,{
+      const response=await axios.post(`http://localhost:5000/api/query`,{
         organizationId:orgId,
         groupBy:type
       });
@@ -187,7 +188,7 @@ function App() {
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'15px'}}>
               <h3 style={{margin:0, color:'#3730a3'}}>Dynamic Reports</h3>
 
-              {/*The Control Panel*/}
+              {/*The Query Panel*/}
               <select 
               value={queryType} 
                 onChange={(e)=>{
