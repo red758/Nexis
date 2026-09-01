@@ -251,9 +251,9 @@ function App() {
           </div>
 
           {/*AI Copilot*/}
-          <div style={{marginBottom:'30px', padding:'20px', borderRadius:'8px', background:'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color:'white', boxShadow:'0 4px 6px rgba(0,0,0,0.1)'}}>
-                <h3 style={{margin:'0 0 10px 0'}}> Nexis Ai Copilot</h3>
-                <p style={{margin:'0 0 15px 0', fontSize:'14px', opacity:0.9}}>
+          <div style={{marginBottom:'30px', padding:'20px', borderRadius:'8px', border:'2px solid #515050', color:'white', boxShadow:'0 4px 6px rgba(0,0,0,0.1)'}}>
+                <h3 style={{margin:'0 0 10px 0', color:'black'}}> Nexis Ai Copilot</h3>
+                <p style={{margin:'0 0 15px 0', fontSize:'14px', opacity:0.9, color:'black'}}>
                   Type a massive goal, and our AI will break it down into technical tasks
                 </p>
 
@@ -264,7 +264,7 @@ function App() {
                     value={aiPrompt}
                     onChange={(e)=>setAiPrompt(e.target.value)}
                     required
-                    style={{flex:1, padding:'12px', borderRadius:'4px', border:'none', outline:'none'}}
+                    style={{flex:1, padding:'12px', borderRadius:'4px', border:'2px solid #ccc', outline:'none'}}
                     disabled={isAiLoading}
                   />
                   <button
