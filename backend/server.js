@@ -12,6 +12,7 @@ const userRoutes=require('./routes/userRoutes');
 const taskRoutes=require('./routes/taskRoutes');
 const queryRoutes=require('./routes/queryRoutes');
 const authMiddleware=require('./middleware/auth');
+const aiRoutes=require('./routes/aiRoutes');
 
 //Initializing express app
 const app=express();
@@ -60,6 +61,7 @@ mongoose.connect(process.env.MONGO_URI)
 app.use('/api/users', userRoutes);
 app.use('/api/tasks', authMiddleware, taskRoutes);
 app.use('/api/query', authMiddleware, queryRoutes);
+app.use('/api/ai', authMiddleware, aiRoutes);
 
 // a simple test route
 /*app.get('/api/health',(req,res)=>{

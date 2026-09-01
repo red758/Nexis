@@ -33,6 +33,10 @@ function App() {
   const [loginData, setLoginData]=useState({email:'', password:''});
   const [isLoginMode, setIsLoginMode]=useState(true);
 
+  //Ai features
+  const [aiPrompt, setAiPrompt]=useState('');
+  const [isAiLoading, setIsAiLoading]=useState(false);
+
   //Websocket setup
   useEffect(()=>{
     if(currentUser){
@@ -179,6 +183,30 @@ function App() {
     }
   };
 
+  const handleAiGenerate=async (e)=>{
+    e.preventDefault();
+    setIsAiLoading(true);
+
+    const orgId=currentUser.organization._id ? currentUser.organization._id : currentUser.organization;
+    try{
+      await axios.post('http://localhost:5000/api/ai/generate',{
+        prompt:aiPrompt,
+        assigneeId: currentUser._id,
+        organizationId: orgId,
+        userName: currentUser.name
+      });
+
+      setAiPrompt('');
+      fetchTasks(orgId);
+      runDynamicQuery(orgId, queryType);
+    }catch(error){
+      console.error("Error generating AI tasks: ",error);
+      alert("AI tasks generation failed");
+    }finally{
+      setIsAiLoading(false);
+    }
+  };
+
   if(currentUser){
     return(
       <div style={{padding:'20px', fontFamily:'sans-serif', display:'flex', gap:'40px'}}>
@@ -220,6 +248,33 @@ function App() {
                   </div>
                 ))}
             </div>
+          </div>
+
+          {/*AI Copilot*/}
+          <div style={{marginBottom:'30px', padding:'20px', borderRadius:'8px', background:'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color:'white', boxShadow:'0 4px 6px rgba(0,0,0,0.1)'}}>
+                <h3 style={{margin:'0 0 10px 0'}}> Nexis Ai Copilot</h3>
+                <p style={{margin:'0 0 15px 0', fontSize:'14px', opacity:0.9}}>
+                  Type a massive goal, and our AI will break it down into technical tasks
+                </p>
+
+                <form onSubmit={handleAiGenerate} style={{display:'flex', gap:'10px'}}>
+                  <input 
+                    type="text"
+                    placeholder="e.g. Build a secure user authentication system..."
+                    value={aiPrompt}
+                    onChange={(e)=>setAiPrompt(e.target.value)}
+                    required
+                    style={{flex:1, padding:'12px', borderRadius:'4px', border:'none', outline:'none'}}
+                    disabled={isAiLoading}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isAiLoading}
+                    style={{padding:'12px 20px', backgroundColor:isAiLoading ? '#ccc' : ' #10b981', color:'white', border:'none', borderRadius:'4px', cursor:isAiLoading ? 'wait' : 'pointer', fontnWeight:'bold'}}
+                  >
+                    {isAiLoading ? 'AI is Thinking...' : 'Auto-Plan with AI'} 
+                  </button>
+                </form>
           </div>
 
           {/*Form for creating tasks*/}
