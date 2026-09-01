@@ -10,6 +10,7 @@ axios.interceptors.request.use((config)=>{
   if(token){
     config.headers['Authorization']=`Bearer ${token}`;
   }
+  console.log(config);
   return config;
 }, (error)=>{
   return Promise.reject(error);
@@ -90,7 +91,7 @@ function App() {
   const handleLogin = async (e) => {
     //console.log("CLICKED USER DATA:", user);
     e.preventDefault();
-    console.log("🟢 LOGIN BUTTON WAS CLICKED!");
+    console.log("LOGIN BUTTON WAS CLICKED!");
     console.log("Data ready to send:", loginData);
     try{
       const response= await axios.post('http://localhost:5000/api/users/login', loginData);
