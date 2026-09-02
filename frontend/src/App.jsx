@@ -322,23 +322,26 @@ function App() {
   }
 
   return(
-    <div style={{fontFamily:'sans-serif', maxWidth:'400px', margin:'100px auto', padding:'30px', border:'1px solid #ccc', borderRadius:'8px', boxShadow:'0 4px 6px rgba(0,0,0,0.1)'}}>
-      <h2 style={{textAlign:'center'}}>Nexis Workspace</h2>
+    <div style={{fontFamily:'sans-serif', margin:'100px auto', padding:'30px', border:'1px solid #ccc', borderRadius:'8px', boxShadow:'4px 7px 8px rgba(0,0,0,0.6)'}}>
+       <h2 style={{textAlign:'center'}}>Nexis Workspace</h2>
 
       {/*Toggle for registration and login page*/}
-      <div style={{ display:"flex", marginBottom:"20px"}}>
+      <div style={{ display:"flex", marginBottom:"20px", borderRadius:'5px', gap:'5px'}}>
         <button onClick=
           {()=>setIsLoginMode(true)} 
-          style={{flex:1, padding:"10px", backgroundColor:isLoginMode ? 'black' :'#eee', 
+          style={{flex:1, padding:"10px",
+          backgroundColor:isLoginMode ? 'black' :'#eee', 
           color: isLoginMode ? 'white' : 'black', 
-          border:'none', cursor:'pointer'}}
+          border:'none', cursor:'pointer',
+          borderRadius:'5px'}}
         >
           Login
         </button>
 
         <button onClick=
         {()=>setIsLoginMode(false)}
-        style={{flex:1, padding:'10px', backgroundColor:isLoginMode ? '#eee' :'black',
+        style={{flex:1, padding:'10px', borderRadius:'5px', 
+          backgroundColor:isLoginMode ? '#eee' :'black',
           color:isLoginMode ? 'black' : 'white',
           border:'none', cursor:'pointer'}}
         >
