@@ -322,52 +322,78 @@ function App() {
   }
 
   return(
-    <div style={{fontFamily:'sans-serif', margin:'100px auto', padding:'30px', border:'1px solid #ccc', borderRadius:'8px', boxShadow:'4px 7px 8px rgba(0,0,0,0.6)'}}>
-       <h2 style={{textAlign:'center'}}>Nexis Workspace</h2>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-2xl border border-slate-200">
+        
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-semibold text-slate-900 tracking-normal">
+            Nexis Workspace
+          </h2>
+        </div>
 
-      {/*Toggle for registration and login page*/}
-      <div style={{ display:"flex", marginBottom:"20px", borderRadius:'5px', gap:'5px'}}>
-        <button onClick=
-          {()=>setIsLoginMode(true)} 
-          style={{flex:1, padding:"10px",
-          backgroundColor:isLoginMode ? 'black' :'#eee', 
-          color: isLoginMode ? 'white' : 'black', 
-          border:'none', cursor:'pointer',
-          borderRadius:'5px'}}
-        >
-          Login
-        </button>
+        {/*Toggle for registration and login page*/}
+        <div className="flex p-1 rounded-lg mb-8 gap-3">
+          <button onClick=
+            {()=>setIsLoginMode(true)} 
+            className={`flex-1 py-2 text-s font-semibold rounded-md transition-all border border-slate-50
+              ${isLoginMode ? 'bg-white text-blue-600 shadow-md border border-slate-200 hover:shadow-[4px_5px_5px_rgba(0,0,0,0.2)] hover:scale-105' : 'text-slate-500 hover:text-slate-700 hover:shadow-[4px_4px_5px_rgba(0,0,0,0.2)] hover:border border-slate-200 hover:scale-105'}
+            `}
+          >
+            Login
+          </button>
 
-        <button onClick=
-        {()=>setIsLoginMode(false)}
-        style={{flex:1, padding:'10px', borderRadius:'5px', 
-          backgroundColor:isLoginMode ? '#eee' :'black',
-          color:isLoginMode ? 'black' : 'white',
-          border:'none', cursor:'pointer'}}
-        >
-          Register
-        </button>
+          <button onClick=
+          {()=>setIsLoginMode(false)}
+          className={`flex-1 py-2 text-s font-semibold rounded-md transition-all border border-slate-50
+              ${!isLoginMode ? 'bg-white text-blue-600 shadow-md border border-slate-200 hover:shadow-[4px_5px_5px_rgba(0,0,0,0.2)] hover:scale-105' : 'text-slate-500 hover:text-slate-700 hover:shadow-[4px_4px_5px_rgba(0,0,0,0.2)] hover:border border-slate-200 hover:scale-105'}
+            `}
+          >
+            Register
+          </button>
+        </div>
+        
+        {isLoginMode ? (
+          /*Login Form*/
+          <form onSubmit={handleLogin} className="flex flex-col gap-4">
+            <div className="flex flex-col-reverse">
+              <input type="email" placeholder="name@company.com" value={loginData.email} onChange={e=>setLoginData({...loginData, email:e.target.value})} required className="peer w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"/>
+              <label className="origin-left block text-sm font-medium text-slate-700 mb-1 transition-all duration-200 peer-focus:text-slate-900 transition-all peer-focus:scale-110 ">Email Address</label>
+            </div>
+            <div className="flex flex-col-reverse">
+              <input type="password" placeholder="••••••••" value={loginData.password} onChange={e=>setLoginData({...loginData, password:e.target.value})} required className="peer w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"/>
+              <label className="origin-left block text-sm font-medium text-slate-700 mb-1 transition-all duration-200 peer-focus:text-slate-900 transition-all peer-focus:scale-110 ">Password</label>
+            </div>
+            <button type="submit" className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all">Secure Login</button>
+          </form>
+        ):(
+          /*Register Form*/
+          <form onSubmit={handleRegister} className="flex flex-col gap-4">
+            <div className="flex flex-col-reverse">
+              <input type="text" placeholder="Full Name" value={registerData.userName} onChange={e=>setRegisterData({...registerData, userName:e.target.value})} required className="peer w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none transition-all"/>
+              <label className="origin-left block text-sm font-medium text-slate-700 mb-1 transition-all duration-200 peer-focus:text-slate-900 transition-all peer-focus:scale-110 ">Full Name</label>
+            </div>
+
+            <div className="flex flex-col-reverse">
+              <input type="email" placeholder="Email" value={registerData.email} onChange={e=>setRegisterData({...registerData, email:e.target.value})} required className="peer w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"/>
+              <label className="origin-left block text-sm font-medium text-slate-700 mb-1 transition-all duration-200 peer-focus:text-slate-900 transition-all peer-focus:scale-110 ">Email</label>
+            </div>
+
+            <div className="flex flex-col-reverse">
+              <input type="password" placeholder="••••••••" value={registerData.password} onChange={e=>setRegisterData({...registerData, password:e.target.value})} required className="peer w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"/>
+              <label className="origin-left block text-sm font-medium text-slate-700 mb-1 transition-all duration-200 peer-focus:text-slate-900 transition-all peer-focus:scale-110 ">Create a Password</label>
+            </div>
+
+            <div className="flex flex-col-reverse">
+              <input type="text" placeholder="Organization Name" value={registerData.orgName} onChange={e=>setRegisterData({...registerData, orgName:e.target.value})} required className="peer w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"/>
+              <label className="origin-left block text-sm font-medium text-slate-700 mb-1 transition-all duration-200 peer-focus:text-slate-900 transition-all peer-focus:scale-110 ">Organization Name</label>
+            </div>
+
+            <button type="submit" className="py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-all">Create Account</button>
+          </form>
+        )}
       </div>
-      
-      {isLoginMode ? (
-        /*Login Form*/
-        <form onSubmit={handleLogin} style={{display:'flex', flexDirection:'column', gap:'15px'}}>
-          <input type="email" placeholder="Email" value={loginData.email} onChange={e=>setLoginData({...loginData, email:e.target.value})} required style={{padding:'10px'}}/>
-          <input type="password" placeholder="Password" value={loginData.password} onChange={e=>setLoginData({...loginData, password:e.target.value})} required style={{padding:'10px'}}/>
-          <button type="submit" style={{padding:'12px', backgroundColor:'blue', color:'white', border:'none', borderRadius:'4px', cursor:'pointer'}}>Secure Login</button>
-        </form>
-      ):(
-        /*Register Form*/
-        <form onSubmit={handleRegister} style={{display:'flex', flexDirection:'column', gap:'15px'}}>
-          <input type="text" placeholder="Full Name" value={registerData.userName} onChange={e=>setRegisterData({...registerData, userName:e.target.value})} required style={{padding:'10px'}}/>
-          <input type="email" placeholder="Email" value={registerData.email} onChange={e=>setRegisterData({...registerData, email:e.target.value})} required style={{padding:'10px'}}/>
-          <input type="text" placeholder="Create a Password" value={registerData.password} onChange={e=>setRegisterData({...registerData, password:e.target.value})} required style={{padding:'10px'}}/>
-          <input type="text" placeholder="Organization Name" value={registerData.orgName} onChange={e=>setRegisterData({...registerData, orgName:e.target.value})} required style={{padding:'10px'}}/>
-          <button type="submit" style={{padding:'12px', backgroundColor:'green', color:'white', border:'none', borderRadius:'4px', cursor:'pointer'}}>Create Account</button>
-        </form>
-      )}
     </div>
-      
+        
   );
 
 }
