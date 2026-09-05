@@ -155,7 +155,7 @@ function App() {
     }
   };
 
-  const handelUpdateStatus = async (taskId, newStatus, taskTitle)=>{
+  const handleUpdateStatus = async (taskId, newStatus, taskTitle)=>{
     const orgId=currentUser.organization._id ? currentUser.organization._id : currentUser.organization;
     try{
       await axios.put(`http://localhost:5000/api/tasks/${taskId}`,{
@@ -208,115 +208,168 @@ function App() {
   };
 
   if(currentUser){
-    return(
-      <div style={{padding:'20px', fontFamily:'sans-serif', display:'flex', gap:'40px'}}>
-        
-        {/*Left column tasks*/}
-        <div style={{flex:2}}>
-          <button onClick={handleLogout} style={{marginBottom:'20px', padding:'8px', cursor:'pointer'}}>Logout</button>
-          <h2>{currentUser.organization.name} Workspace</h2>
-          <p>Welcome back, {currentUser.name}</p>
-          
-          {/*Report Section*/}
-          <div style={{marginBottom:'30px', backgroundColor:'#e0e7ff', padding:"15px", borderRadius:"8px", border:"1px solid #c7d2fe"}}>
-            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'15px'}}>
-              <h3 style={{margin:0, color:'#3730a3'}}>Dynamic Reports</h3>
+    return (
+      <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
 
-              {/*The Query Panel*/}
-              <select 
-              value={queryType} 
-                onChange={(e)=>{
-                  setQueryType(e.target.value); 
-                  const orgId=currentUser.organization._id ? currentUser.organization._id : currentUser.organization;
-                  runDynamicQuery(orgId, e.target.value);
-                }}
-                style={{padding:'5px', borderRadius:'4px'}}
-              >
-                <option value="status">Group by Status</option>
-                <option value="assignee">Group by Assignee</option>
-              </select>
+        {/* ULTRA CLEAN NAVBAR */}
+        <nav className="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 bg-slate-900 rounded-md flex items-center justify-center text-white font-bold text-lg">
+              N
+            </div>
+            <h2 className="text-lg font-bold text-slate-900">{currentUser.organization.name}</h2>
+          </div>
+          <div className="flex items-center gap-6">
+            <p className="text-sm font-medium text-slate-600">Welcome, <span className="text-slate-900 font-bold">{currentUser.name}</span></p>
+            <button onClick={handleLogout} className="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 hover:bg-slate-100 rounded-md transition-colors">
+              Logout
+            </button>
+          </div>
+        </nav>
+
+        {/* MAIN DASHBOARD */}
+        <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* LEFT COLUMN */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* FLAT AI COPILOT */}
+            <div className="bg-white rounded-xl p-6 md:p-8 border border-slate-200 shadow-sm">
+              <h3 className="text-xl font-bold mb-1 text-slate-900 flex items-center gap-2">✦ Nexis AI Copilot</h3>
+              <p className="text-slate-500 mb-6 text-sm">Type a goal, and our AI will break it down into technical tasks instantly.</p>
+              
+              <form onSubmit={handleAiGenerate} className="flex flex-col sm:flex-row gap-3">
+                <input 
+                  type="text"
+                  placeholder="e.g. Build a secure authentication system..."
+                  value={aiPrompt}
+                  onChange={(e)=>setAiPrompt(e.target.value)}
+                  required
+                  className="flex-1 px-4 py-2 rounded-md bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all"
+                  disabled={isAiLoading}
+                />
+                <button
+                  type="submit"
+                  disabled={isAiLoading}
+                  className="px-6 py-2 bg-slate-900 text-white font-medium rounded-md hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-wait"
+                >
+                  {isAiLoading ? 'Planning...' : 'Auto-Plan'}
+                </button>
+              </form>
             </div>
 
-            {/* Canvas for Results */}
-            <div style={{display:'flex', gap:'10px', flexWrap:'wrap'}}>
-                {queryResults.map((result,index)=>(
-                  <div key={index} style={{backgroundColor:'white', padding:'10px 15px', borderRadius:'5px', boxShadow:'0 1px 2px rgba(0,0,0,0.1)'}}>
-                    <span style={{color:'gray', fontSize:'12px', display:'block'}}>
-                      {result._id}
-                    </span>
-                    <strong style={{fontSize:'20px'}}>{result.count}</strong>
+            {/* FLAT ANALYTICS */}
+            <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-slate-900">Dynamic Reports</h3>
+                <select 
+                  value={queryType}
+                  onChange={(e)=>{
+                    setQueryType(e.target.value);
+                    const orgId = currentUser.organization._id ? currentUser.organization._id : currentUser.organization;
+                    runDynamicQuery(orgId, e.target.value);
+                  }}
+                  className="bg-white border border-slate-200 text-sm rounded-md px-3 py-1.5 focus:outline-none focus:border-slate-900 font-medium cursor-pointer"
+                >
+                  <option value="status">Group By Status</option>
+                  <option value="assignee">Group By Assignee</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {queryResults.map((result, index)=>(
+                  <div key={index} className="bg-slate-50 p-4 rounded-lg border border-slate-100 flex flex-col justify-center items-center text-center">
+                    <span className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">{result._id}</span>
+                    <strong className="text-2xl font-bold text-slate-900">{result.count}</strong>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* TASKS SECTION */}
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 mb-4">Project Tasks</h3>
+              
+              <form onSubmit={handleCreateTask} className="flex gap-3 mb-6 bg-white p-1.5 rounded-lg border border-slate-200 shadow-sm">
+                <input 
+                  type="text"
+                  placeholder="Add a task..."
+                  value={taskTitle}
+                  onChange={(e)=>setTaskTitle(e.target.value)}
+                  required
+                  className="flex-1 px-3 py-1.5 outline-none bg-transparent text-sm"
+                />
+                <button type="submit" className="px-4 py-1.5 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 transition-colors">
+                  Add
+                </button>
+              </form>
+
+              <ul className="space-y-3">
+                {tasks.length === 0 ? (
+                  <div className="text-center py-10 text-slate-500 bg-white rounded-xl border border-dashed border-slate-300 text-sm">
+                    No tasks yet. Create one above.
+                  </div>
+                ) : (
+                  tasks.map(task=>(
+                    <li key={task._id} className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:border-slate-300 transition-colors group flex items-center justify-between gap-4">
+                      <div className="flex-1">
+                        <strong className="text-slate-900 font-semibold block mb-1">{task.title}</strong>
+                        <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                          Assigned to: {task.assignee ? task.assignee.name : 'Unassigned'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <select 
+                          value={task.status}
+                          onChange={(e)=>handelUpdateStatus(task._id, e.target.value, task.title)}
+                          className={`text-xs font-medium rounded-md px-2.5 py-1 border cursor-pointer outline-none ${
+                            task.status === 'Done' ? 'bg-slate-50 text-slate-900 border-slate-200' : 
+                            task.status === 'In Progress' ? 'bg-slate-100 text-slate-900 border-slate-300' : 
+                            'bg-white text-slate-600 border-slate-200'
+                          }`}
+                        >
+                          <option value='Todo'>Todo</option>
+                          <option value='In Progress'>In Progress</option>
+                          <option value='Done'>Done</option>
+                        </select>
+                        <button onClick={()=>handleDeleteTask(task._id)} className="w-7 h-7 flex items-center justify-center bg-white border border-slate-200 text-slate-400 rounded-md hover:bg-slate-100 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100" title="Delete Task">✕</button>
+                      </div>
+                    </li>
+                  ))
+                )}
+              </ul>
             </div>
           </div>
 
-          {/*AI Copilot*/}
-          <div style={{marginBottom:'30px', padding:'20px', borderRadius:'8px', border:'2px solid #515050', color:'white', boxShadow:'0 4px 6px rgba(0,0,0,0.1)'}}>
-                <h3 style={{margin:'0 0 10px 0', color:'black'}}> Nexis Ai Copilot</h3>
-                <p style={{margin:'0 0 15px 0', fontSize:'14px', opacity:0.9, color:'black'}}>
-                  Type a massive goal, and our AI will break it down into technical tasks
-                </p>
-
-                <form onSubmit={handleAiGenerate} style={{display:'flex', gap:'10px'}}>
-                  <input 
-                    type="text"
-                    placeholder="e.g. Build a secure user authentication system..."
-                    value={aiPrompt}
-                    onChange={(e)=>setAiPrompt(e.target.value)}
-                    required
-                    style={{flex:1, padding:'12px', borderRadius:'4px', border:'2px solid #ccc', outline:'none'}}
-                    disabled={isAiLoading}
-                  />
-                  <button
-                    type="submit"
-                    disabled={isAiLoading}
-                    style={{padding:'12px 20px', backgroundColor:isAiLoading ? '#ccc' : ' #10b981', color:'white', border:'none', borderRadius:'4px', cursor:isAiLoading ? 'wait' : 'pointer', fontnWeight:'bold'}}
-                  >
-                    {isAiLoading ? 'AI is Thinking...' : 'Auto-Plan with AI'} 
-                  </button>
-                </form>
+          {/* RIGHT COLUMN */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden sticky top-24 shadow-sm">
+              <div className="bg-slate-50 border-b border-slate-200 p-4">
+                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-slate-500"></span>
+                  </span>
+                  Activity Feed
+                </h3>
+              </div>
+              <div className="p-4 h-[600px] overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <p className="text-slate-400 text-xs text-center mt-10">No recent activity.</p>
+                ) : (
+                  <ul className="space-y-3">
+                    {notifications.map((note, index)=>(
+                      <li key={index} className="bg-white border border-slate-200 border-l-2 border-l-slate-900 p-3 rounded-md shadow-sm text-xs text-slate-700">
+                        {note}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
           </div>
-
-          {/*Form for creating tasks*/}
-          <form onSubmit={handleCreateTask} style={{marginBottom:'30px'}}>
-            <input type="text" placeholder="What needs to be done" value={taskTitle} onChange={(e)=>setTaskTitle(e.target.value)} required style={{padding:'10px', width:'300px'}}/>
-            <button type="submit" style={{padding:'10px', backgroundColor:'blue', color:'white'}}>Add Task</button>
-          </form>
-
-          <h3>Project Tasks</h3>
-          <ul style={{listStyleType:'none', padding:0}}>
-            {tasks.map(task=>(
-              <li key={task._id} style={{border:'1px solid black', padding:'15px', margin:'10px 0', borderRadius:'5px'}}>
-                <button onClick={()=>handleDeleteTask(task._id)} style={{float:'right', backgroundColor:'red', color:'white', border:'none', padding:'5px 10px', cursor:'pointer', borderRadius:'3px', marginLeft:'10px'}}>X</button>
-                <select value={task.status} onChange={(e)=>{handelUpdateStatus(task._id, e.target.value, task.title)}} style={{float:'right', padding:'5px', borderRadius:'3px', cursor:'pointer'}}>
-                  <option value="Todo">Todo</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Done">Done</option>  
-                </select>
-                <strong>{task.title}</strong>
-                <p style={{margin:'5px 0 0 0', fontSize:'12px', color:'gray'}}>
-                  Assigned to: {task.assignee ? task.assignee.name : 'Unassigned'}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/*Right column: Live notifications*/}
-        <div style={{flex:1, backgroundColor:'#f9f9f9', padding:'20px', borderRadius:'8px', border:'1px solid #ddd', maxHeight:'500px', overflowY:'auto'}}>
-          <h3>Live Notifications</h3>
-          {notifications.length===0 ? (
-            <p style={{color:'gray', fontSize:'14px'}}>No New Notifications...</p>
-          ):(
-            <ul style={{listStyleType:'none', padding:0}}>
-              {notifications.map((note,index)=>(
-                <li key={index} style={{backgroundColor:'#fff', borderLeft:'4px solid green', padding:'10px', marginBottom:'10px', boxShadow:'0 2px 4px rgba(0,0,0,0.1)'}}>
-                  {note}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+          
+        </main>
       </div>
     );
   }
