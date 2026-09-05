@@ -5,6 +5,7 @@ const bcrypt=require('bcryptjs');
 const jwt=require('jsonwebtoken');
 const User = require('../models/User');
 const Organization = require('../models/Organization');
+const authMiddleware=require('../middleware/auth');
 
 router.post('/register', async(req, res)=>{
     try{
@@ -88,4 +89,22 @@ router.delete('/:id', async(req,res)=>{
     }
 });
 
+//used to auto login when refreshed
+router.get('/me', authMiddleware, async(req, res)=>{
+    try{
+        const user=await User.findById(req.user.userId).populate('organization');
+        if(!user){
+            return res.status(404).json({error:'User not found'});
+        }
+        res.status(200).json({
+            _id: user._id,
+            name:user.name,
+            email:user.email,
+            organization:user.organization
+        });
+    }catch(error){
+        console.error('Auto login failed: ',error);
+        res.status(500).json({error:'Server error'});
+    }
+});
 module.exports = router;

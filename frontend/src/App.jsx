@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import {io} from 'socket.io-client';
+import {AuthContext} from './context/AuthContext';
 
 //We create the connection outside the component so it doesnt re-connect every time the component re render
 const socket=io('http://localhost:5000');
@@ -17,7 +18,12 @@ axios.interceptors.request.use((config)=>{
 });
 
 function App() {
-  const [currentUser, setCurrentUser]=useState(null);
+  //const [currentUser, setCurrentUser]=useState(null);
+  const {currentUser, login, logout, loading}=useContext(AuthContext);
+  
+  console.log("Is App Loading?", loading);
+  console.log("Who is the user?", currentUser);
+
   const [tasks, setTasks]=useState([]);
   const [taskTitle, setTaskTitle]=useState('');
   
@@ -98,14 +104,15 @@ function App() {
     console.log("LOGIN BUTTON WAS CLICKED!");
     console.log("Data ready to send:", loginData);
     try{
-      const response= await axios.post('http://localhost:5000/api/users/login', loginData);
+      const response= await axios.post('http://localhost:5000/api/users/login/loginData');
       //Save JWT token in local storage
-      localStorage.setItem('nexis_token', response.data.token);
-      
-      const user=response.data.user;
-      setCurrentUser(user);
+      //localStorage.setItem('nexis_token', response.data.token);
+      login(response.data.user, response.data.token);
 
-      const orgId=user.organization._id ? user.organization._id : user.organization;
+      //const user=response.data.user;
+      //setCurrentUser(user);
+
+      const orgId= response.data.user.organization._id ? response.data.user.organization._id : response.data.user.organization;
       fetchTasks(orgId);
       runDynamicQuery(orgId, 'status');
     }catch(error){
@@ -115,9 +122,11 @@ function App() {
 
   const handleLogout = () => {
     //Remove JWT token from local storage
-    localStorage.removeItem('nexis_token');
-    setCurrentUser(null);
+    //localStorage.removeItem('nexis_token');
+    //setCurrentUser(null);
+    logout();
     setTasks([]);
+    setNotifications([]);
     //Cut the live connection immediately. (This stops background listeners from running and prevents memory leaks.)
     socket.disconnect(); 
     //Turn the socket back on so it is ready for the next person who logins on this computer.
@@ -207,6 +216,14 @@ function App() {
     }
   };
 
+  if(loading){
+    return(
+      <div className='min-h-screen w-full bg-slate-50 flex items-center jusitfy-center'>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900"></div>
+      </div>
+    );
+  }
+
   if(currentUser){
     return (
       <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
@@ -235,7 +252,7 @@ function App() {
             
             {/* FLAT AI COPILOT */}
             <div className="bg-white rounded-xl p-6 md:p-8 border border-slate-200 shadow-sm">
-              <h3 className="text-xl font-bold mb-1 text-slate-900 flex items-center gap-2">✦ Nexis AI Copilot</h3>
+              <h3 className="text-xl font-bold mb-1 text-slate-900 flex items-center gap-2">Nexis AI Copilot</h3>
               <p className="text-slate-500 mb-6 text-sm">Type a goal, and our AI will break it down into technical tasks instantly.</p>
               
               <form onSubmit={handleAiGenerate} className="flex flex-col sm:flex-row gap-3">
