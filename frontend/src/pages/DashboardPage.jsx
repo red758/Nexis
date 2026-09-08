@@ -27,6 +27,7 @@ export default function DashboardPage() {
       setTasks(response.data);
     } catch (error) {
       console.error('Error fetching tasks: ', error);
+      
     }
   };
 
@@ -73,9 +74,10 @@ export default function DashboardPage() {
 
   // --- CRUD OPERATIONS ---
   const handleCreateTask = async (e) => {
+    console.log("Create task reaching");
     e.preventDefault();
     try {
-      await axios.post(`http://localhost:5000/api/tasks`, {
+      await axios.post(`http://localhost:5000/api/tasks/${currentUser.name}`, {
         title: taskTitle,
         assigneeId: currentUser._id,
         organizationId: orgId 
@@ -148,7 +150,12 @@ export default function DashboardPage() {
       {/* ULTRA CLEAN NAVBAR */}
       <nav className="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-10">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 bg-slate-900 rounded-md flex items-center justify-center text-white font-bold text-lg">N</div>
+          <div className="h-8 w-8 bg-slate-900 rounded-md flex items-center justify-center text-white">
+              <svg className="w-8 h-7 text-white-900 fill-current" viewBox="0 0 320 400">
+                <path className="logo-path" d="M160 20 L270 380 L220 380 L160 160 L100 380 L50 380 L160 20 Z" />
+                <path className="logo-path" d="M 30 140 C 120 120, 180 140, 240 180 C 300 220, 320 280, 280 340 C 240 400, 180 360, 190 320 C 200 280, 260 260, 280 180 C 300 100, 150 80, 30 140 Z" />
+              </svg>
+          </div>
           <h2 className="text-lg font-bold text-slate-900">{currentUser.organization.name}</h2>
         </div>
         <div className="flex items-center gap-6">

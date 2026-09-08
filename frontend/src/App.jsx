@@ -5,15 +5,12 @@ import {AuthContext} from './context/AuthContext';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
 
-//We create the connection outside the component so it doesnt re-connect every time the component re render
-//const socket=io('http://localhost:5000');
-
 axios.interceptors.request.use((config)=>{
   const token=localStorage.getItem('nexis_token');
   if(token){
     config.headers['Authorization']=`Bearer ${token}`;
   }
-  console.log(config);
+  //console.log(config);
   return config;
 }, (error)=>{
   return Promise.reject(error);
@@ -24,8 +21,8 @@ function App() {
   const {currentUser, loading}=useContext(AuthContext);
   if(loading){
     return(
-      <div className="mih-h-screen w-full bg-slate-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border border-b-2 border-slate-900"></div>
+      <div className="mih-h-screen absolute top-70 w-full bg-slate-50 flex items-center justify-center"> {/*spinner centered*/}
+        <div className="animate-spin rounded-full h-12 w-12 top-border border-b-2 border-slate-900"></div>
       </div>
     );
   }
