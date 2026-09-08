@@ -178,9 +178,9 @@ export default function DashboardPage() {
             <form onSubmit={handleAiGenerate} className="flex flex-col sm:flex-row gap-3">
               <input 
                 type="text" placeholder="e.g. Build a secure authentication system..." value={aiPrompt} onChange={(e)=>setAiPrompt(e.target.value)} required 
-                className="flex-1 px-4 py-2 rounded-md bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all" disabled={isAiLoading}
+                className="flex-1 px-2 py-2 placeholder:text-sm text-sm rounded-md bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:ring-slate-900 transition-all font-medium" disabled={isAiLoading}
               />
-              <button type="submit" disabled={isAiLoading} className="px-6 py-2 bg-slate-900 text-white font-medium rounded-md hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-wait">
+              <button type="submit" disabled={isAiLoading} className="px-6 py-1 text-sm bg-slate-900 text-white font-medium rounded-md hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-wait">
                 {isAiLoading ? 'Planning...' : 'Auto-Plan'}
               </button>
             </form>
@@ -209,7 +209,7 @@ export default function DashboardPage() {
           <div>
             <h3 className="text-lg font-bold text-slate-900 mb-4">Project Tasks</h3>
             <form onSubmit={handleCreateTask} className="flex gap-3 mb-6 bg-white p-1.5 rounded-lg border border-slate-200 shadow-sm">
-              <input type="text" placeholder="Add a task..." value={taskTitle} onChange={(e)=>setTaskTitle(e.target.value)} required className="flex-1 px-3 py-1.5 outline-none bg-transparent text-sm" />
+              <input type="text" placeholder="Add a task..." value={taskTitle} onChange={(e)=>setTaskTitle(e.target.value)} required className="flex-1 px-3 py-1.5 text-sm font-medium" />
               <button type="submit" className="px-4 py-1.5 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 transition-colors">Add</button>
             </form>
             <ul className="space-y-3">
