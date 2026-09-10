@@ -173,7 +173,7 @@ export default function DashboardPage() {
           
           {/* AI COPILOT */}
           <div className="bg-white rounded-xl p-6 md:p-8 border border-slate-200 shadow-sm">
-            <h3 className="text-xl font-bold mb-1 text-slate-900 flex items-center gap-2">✦ Nexis AI Copilot</h3>
+            <h3 className="text-xl font-bold mb-1 text-slate-900 flex items-center gap-2">Nexis AI Copilot</h3>
             <p className="text-slate-500 mb-6 text-sm">Type a goal, and our AI will break it down into technical tasks instantly.</p>
             <form onSubmit={handleAiGenerate} className="flex flex-col sm:flex-row gap-3">
               <input 
