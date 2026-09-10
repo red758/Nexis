@@ -159,7 +159,7 @@ export default function DashboardPage() {
           <h2 className="text-lg font-bold text-slate-900">{currentUser.organization.name}</h2>
         </div>
         <div className="flex items-center gap-6">
-          <p className="text-sm font-medium text-slate-600">Welcome, <span className="text-slate-900 font-bold">{currentUser.name}</span></p>
+          <p className="text-sm font-medium text-slate-600">Welcome, <span className="text-slate-900 font-bold">{currentUser.name}</span>{currentUser.role}</p>
           <button onClick={handleSafeLogout} className="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 hover:bg-slate-100 rounded-md transition-colors">
             Logout
           </button>
