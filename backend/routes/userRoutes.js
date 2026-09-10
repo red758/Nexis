@@ -5,7 +5,7 @@ const bcrypt=require('bcryptjs');
 const jwt=require('jsonwebtoken');
 const User = require('../models/User');
 const Organization = require('../models/Organization');
-const authMiddleware=require('../middleware/auth');
+const {authMiddleware}=require('../middleware/auth');
 
 router.post('/register', async(req, res)=>{
     try{
@@ -44,9 +44,7 @@ router.post('/register', async(req, res)=>{
 
 router.post('/login', async(req, res)=>{
     try{
-
     //console.log("Email trying to log in:", req.body.email);
-
         const {email, password}=req.body;
         const user =await User.findOne({email}).populate('organization');
         if(!user){

@@ -159,7 +159,7 @@ export default function DashboardPage() {
           <h2 className="text-lg font-bold text-slate-900">{currentUser.organization.name}</h2>
         </div>
         <div className="flex items-center gap-6">
-          <p className="text-sm font-medium text-slate-600">Welcome, <span className="text-slate-900 font-bold">{currentUser.name}</span>{currentUser.role}</p>
+          <p className="text-sm font-medium text-slate-600">Welcome, <span className="text-slate-900 font-bold">{currentUser.name}</span> ({currentUser.role})</p>
           <button onClick={handleSafeLogout} className="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 hover:bg-slate-100 rounded-md transition-colors">
             Logout
           </button>
@@ -174,16 +174,23 @@ export default function DashboardPage() {
           {/* AI COPILOT */}
           <div className="bg-white rounded-xl p-6 md:p-8 border border-slate-200 shadow-sm">
             <h3 className="text-xl font-bold mb-1 text-slate-900 flex items-center gap-2">Nexis AI Copilot</h3>
-            <p className="text-slate-500 mb-6 text-sm">Type a goal, and our AI will break it down into technical tasks instantly.</p>
-            <form onSubmit={handleAiGenerate} className="flex flex-col sm:flex-row gap-3">
-              <input 
-                type="text" placeholder="e.g. Build a secure authentication system..." value={aiPrompt} onChange={(e)=>setAiPrompt(e.target.value)} required 
-                className="flex-1 px-2 py-2 placeholder:text-sm text-sm rounded-md bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:ring-slate-900 transition-all font-medium" disabled={isAiLoading}
-              />
-              <button type="submit" disabled={isAiLoading} className="px-6 py-1 text-sm bg-slate-900 text-white font-medium rounded-md hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-wait">
-                {isAiLoading ? 'Planning...' : 'Auto-Plan'}
-              </button>
-            </form>
+            
+            {currentUser.role !== 'client' ?(
+              <>
+              <p className="text-slate-500 mb-6 text-sm">Type a goal, and our AI will break it down into technical tasks instantly.</p>
+              <form onSubmit={handleAiGenerate} className="flex flex-col sm:flex-row gap-3">
+                <input 
+                  type="text" placeholder="e.g. Build a secure authentication system..." value={aiPrompt} onChange={(e)=>setAiPrompt(e.target.value)} required 
+                  className="flex-1 px-2 py-2 placeholder:text-sm text-sm rounded-md bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:ring-slate-900 transition-all font-medium" disabled={isAiLoading}
+                />
+                <button type="submit" disabled={isAiLoading} className="px-6 py-1 text-sm bg-slate-900 text-white font-medium rounded-md hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-wait">
+                  {isAiLoading ? 'Planning...' : 'Auto-Plan'}
+                </button>
+              </form>
+              </>
+            ):(
+              <p className="text-slate-500 text-sm">Ai feature can only be accessed by admin and collaborators</p>
+            )}
           </div>
 
           {/* DYNAMIC REPORTS */}
@@ -208,10 +215,14 @@ export default function DashboardPage() {
           {/* TASKS */}
           <div>
             <h3 className="text-lg font-bold text-slate-900 mb-4">Project Tasks</h3>
-            <form onSubmit={handleCreateTask} className="flex gap-3 mb-6 bg-white p-1.5 rounded-lg border border-slate-200 shadow-sm">
-              <input type="text" placeholder="Add a task..." value={taskTitle} onChange={(e)=>setTaskTitle(e.target.value)} required className="flex-1 px-3 py-1.5 text-sm font-medium" />
-              <button type="submit" className="px-4 py-1.5 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 transition-colors">Add</button>
-            </form>
+            
+            {currentUser.role !== 'client' && (
+              <form onSubmit={handleCreateTask} className="flex gap-3 mb-6 bg-white p-1.5 rounded-lg border border-slate-200 shadow-sm">
+                <input type="text" placeholder="Add a task..." value={taskTitle} onChange={(e)=>setTaskTitle(e.target.value)} required className="flex-1 px-3 py-1.5 text-sm font-medium" />
+                <button type="submit" className="px-4 py-1.5 bg-slate-900 text-white text-sm font-medium rounded-md hover:bg-slate-800 transition-colors">Add</button>
+              </form>
+            )}
+
             <ul className="space-y-3">
               {tasks.length === 0 ? (
                 <div className="text-center py-10 text-slate-500 bg-white rounded-xl border border-dashed border-slate-300 text-sm">No tasks yet.</div>
@@ -219,20 +230,39 @@ export default function DashboardPage() {
                 tasks.map(task=>(
                   <li key={task._id} className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:border-slate-300 transition-colors group flex items-center justify-between gap-4">
                     <div className="flex-1">
-                      <strong className="text-slate-900 font-semibold block mb-1">{task.title}</strong>
+                      <strong className="text-slate-800 font-semibold block mb-1">{task.title}</strong>
                       <p className="text-xs text-slate-500 flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                         Assigned to: {task.assignee ? task.assignee.name : 'Unassigned'}
                       </p>
                     </div>
+                    
+                    {currentUser.role === 'client' ? (
+                      <span classname={`text-xs px-3 py-1 rounded-full
+                        ${
+                          task.status==='Done'?'bg-green-100 text-green-700' : 
+                          task.status==='In Progress'?'bg-blue-100 text-blue-700' : 
+                          'bg-slate-100 text-slate-600'
+                        }`}>
+                          {task.status}
+                      </span>
+                    ):(
                     <div className="flex items-center gap-3">
                       <select value={task.status} onChange={(e)=>handelUpdateStatus(task._id, e.target.value, task.title)} className="text-xs font-medium rounded-md px-2.5 py-1 border cursor-pointer outline-none bg-white">
                         <option value='Todo'>Todo</option>
                         <option value='In Progress'>In Progress</option>
                         <option value='Done'>Done</option>
                       </select>
-                      <button onClick={()=>handleDeleteTask(task._id)} className="w-7 h-7 flex items-center justify-center bg-white border border-slate-200 text-slate-400 rounded-md hover:bg-slate-100 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100">✕</button>
-                    </div>
+                      {currentUser.role==='admin' &&
+                      <button onClick={()=>handleDeleteTask(task._id)} 
+                        className="w-7 h-7 flex items-center justify-center 
+                        bg-white border border-slate-200 text-slate-400 rounded-md 
+                        hover:bg-slate-100 hover:text-red-500 transition-all opacity-0 
+                        group-hover:opacity-100 focus:opacity-100">✕</button>
+                      }
+                      </div>
+                    )}
+
                   </li>
                 ))
               )}
