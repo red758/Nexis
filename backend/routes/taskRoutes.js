@@ -21,7 +21,7 @@ router.delete('/:id',requireRole(['admin']), async (req,res)=>{
 });
 
 //Create tasks
-router.post('/:name',async (req,res)=>{
+router.post('/',async (req,res)=>{
     try{
         console.log('task creation started');
         const {title, assigneeId, organizationId}=req.body;
