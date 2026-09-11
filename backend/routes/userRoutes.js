@@ -5,7 +5,7 @@ const bcrypt=require('bcryptjs');
 const jwt=require('jsonwebtoken');
 const User = require('../models/User');
 const Organization = require('../models/Organization');
-const {authMiddleware}=require('../middleware/auth');
+const {requireRole, authMiddleware}=require('../middleware/auth');
 
 router.post('/register', async(req, res)=>{
     try{
@@ -114,4 +114,25 @@ router.get('/me', authMiddleware, async(req, res)=>{
         res.status(500).json({error:'Server error'});
     }
 });
+
+router.put('/organization/:id/brief', authMiddleware, requireRole(['admin', 'collbaorator']), async(req, res)=>{
+    try{
+        const orgId=req.params.id;
+        const {projectBrief}=req.body;
+
+        const updatedOrg=await Organization.findByIdAndUpdate(
+            orgId,
+            {projectBrief},
+            {new:true}
+        );
+
+        if(!updatedOrg)return res.status(404).json({error:"Organization not found"});
+        res.status(200).json(updatedOrg);
+
+    }catch(error){
+        console.error("Brief Update Error: ", error);
+        res.status(500).json({error:"Failed to update project brief"});
+    }
+});
+
 module.exports = router;

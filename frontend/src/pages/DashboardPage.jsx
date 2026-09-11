@@ -20,6 +20,10 @@ export default function DashboardPage() {
   const [aiPrompt, setAiPrompt] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
 
+  //Project briefs
+  const [projectBrief, setProjectBrief]=useState(currentUser?.organization?.projectBrief || "Loading brief...");
+  const [isEditingBrief, setIsEditingBrief]=useState(false);
+
   const orgId = currentUser?.organization?._id || currentUser?.organization;
 
   // --- DATA FETCHING & WEBSOCKETS ---
@@ -118,6 +122,19 @@ export default function DashboardPage() {
     socket.disconnect(); 
     logout();
     socket.connect(); 
+  };
+
+  const handleSaveBrief=async ()=>{
+    try{
+      await axios.put(`http://localhost:5000/api/users/organization/${orgId}/brief`,{
+        projectBrief:projectBrief
+      });
+      setIsEditingBrief(false);
+      alert("Project brief saved successfully");
+    }catch(error){
+      console.error("Error saving brief: ",error);
+      alert("Failed to save");
+    }
   };
 
   // --- UI RENDER ---
@@ -287,9 +304,84 @@ export default function DashboardPage() {
 
         {/* ================= DOCS TAB (Placeholder) ================= */}
         {activeTab === 'documents' && (
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-16 flex flex-col items-center justify-center text-center">
-            <h3 className="text-2xl font-bold text-slate-900 mb-2">Project Brief & Documents</h3>
-            <p className="text-slate-500 max-w-md">The centralized documentation hub is currently under construction.</p>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/*Left column the project brief*/}
+            <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:p-8">
+              <div className="flex justify-between items-end mb-6 border-b border-slate-100 pb-4">
+                <div>
+                  <h3 className="text-xl fonot-bold text-slate-900">Project</h3>
+                  <p className="text-sm text-slate-500 mt-1">Core requirements, scope and technical notes</p>
+                </div>
+                {/*only non clients can see the edit button*/}
+                {currentUser.role !== 'client' && (
+                  <button
+                    onClick={()=>{
+                      if(isEditingBrief)handleSaveBrief();
+                      else setIsEditingBrief(true);
+                    }}
+                    className={`px-4 py-2 text-sm font-medium rounded-md 
+                      transition-colors 
+                      ${isEditingBrief ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-slate-900 text-white hover:bg-slate-800'}
+                        `}
+                  >
+                    {isEditingBrief ? 'Save' : 'Edit'}
+                  </button>
+                )}
+              </div>
+
+              {isEditingBrief ? (
+                <textarea
+                  value={projectBrief}
+                  onChange={(e)=>setProjectBrief(e.target.value)}
+                  className="w-full h-96 p-4 bg-slate-50 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm resize-y"
+                  placeholder="Write your project requirements here..."
+                />
+              ) : (
+                <div className="prose max-w-none text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">
+                  {projectBrief}
+                </div>
+              )}
+            </div>
+
+            {/*Right Column: Project Assets (Uploads)*/}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h3 className="text-lg font-bold text-slate-900 mb-4 border-b border-slate-100 pb-3">Project Assets</h3>
+
+                {/*Upload Button (hidde from clients)*/}
+                {currentUser.role !== 'client' && (
+                  <div className="mb-6 border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:bg-slate-50 tranistion-colors cursor-pointer">
+                    <p className="text-sm font-medium text-slate-700">Click to upload docs</p>
+                    <p className="text-xs text-slate-500 mt-1">PDF,JPG, PNG (Max 10MB)</p>
+                  </div>
+                )}
+
+                {/*File list*/}
+                <ul className="space-y-3">
+                  <li className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-lg group">
+                    <div clssName="flex items-center gap-3">
+                      <span>Docs</span>
+                      <div>
+                        <p className="text-sm font-medium text-slate-800">system_architecture.pdf</p>
+                        <p className="text-xs text-slate-500">2.4 MB • Uploaded by Admin </p>
+                      </div>
+                    </div>
+                    <button className="text-blue-600 text-sm font-medium hover:underline">Download</button>
+                  </li>
+                  <li className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-lg group">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">photo</span>
+                      <div>
+                        <p className="tex-sm font-medium text-slate-800">figma_mockup_ve.png</p>
+                        <p className="text-sm font-medium text-slate-500">1.1 MB • Uploaded by Admin</p>
+                      </div>
+                    </div>
+                    <button className="text-blue-600 text-sm font-medium hover:underline">Download</button>
+                  </li>
+                </ul>
+                
+              </div>
+            </div>
           </div>
         )}
 
