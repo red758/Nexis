@@ -1,6 +1,6 @@
 const jwt=require('jsonwebtoken');
 
-module.exports=function (req, res, next){
+const authMiddleware= (req, res, next)=>{
     console.log(`\nBOUNCER CHECKING REQUEST TO: ${req.originalUrl}`);
     const authHeader=req.header('Authorization');
     console.log(`Authorization Header received:`, authHeader ? "YES" : "NO");
@@ -14,6 +14,19 @@ module.exports=function (req, res, next){
         req.user=verifiedData;
         next();
     }catch(error){
+        console.log("Invalid token");
         res.status(401).json({error:"Invalid Access"});
     }
 };
+
+const requireRole=(rolesAllowed)=>{
+    return (req,res,next)=>{
+        if(!req.user || !rolesAllowed.includes(req.user.role)){
+            console.log(`Rejected: user role '${req.user?.role}' is not allowed here`);
+            return res.status(403).json({error:"Access Denied, Do not have permission."});
+        }
+        next();
+    };
+};
+
+module.exports={authMiddleware, requireRole};

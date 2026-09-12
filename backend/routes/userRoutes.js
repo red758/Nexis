@@ -5,15 +5,21 @@ const bcrypt=require('bcryptjs');
 const jwt=require('jsonwebtoken');
 const User = require('../models/User');
 const Organization = require('../models/Organization');
-const authMiddleware=require('../middleware/auth');
+const {requireRole, authMiddleware}=require('../middleware/auth');
 
 router.post('/register', async(req, res)=>{
     try{
         const {userName, email, password, orgName}=req.body;
 
         let existingOrg=await Organization.findOne({name: orgName});
+        let assignedRole='client';
+
         if(!existingOrg){
             existingOrg=await Organization.create({name: orgName});
+            assignedRole='admin';
+            console.log(`New workspace created by Admin: ${email}`);
+        }else{
+            console.log(`New client joined workspace: ${email}`);
         }
 
         const safeOrgId=existingOrg._id.toString();
@@ -21,11 +27,12 @@ router.post('/register', async(req, res)=>{
         const salt=await bcrypt.genSalt(10);
         const hashedPassword=await bcrypt.hash(password, salt);
 
-        await User.create({
+        const newUser= await User.create({
             name:userName,
             email:email,
             password:hashedPassword,
-            organization:safeOrgId
+            organization:safeOrgId,
+            role:assignedRole
         });
 
         res.status(201).json({message:'User securely created'});
@@ -37,9 +44,7 @@ router.post('/register', async(req, res)=>{
 
 router.post('/login', async(req, res)=>{
     try{
-
     //console.log("Email trying to log in:", req.body.email);
-
         const {email, password}=req.body;
         const user =await User.findOne({email}).populate('organization');
         if(!user){
@@ -50,7 +55,7 @@ router.post('/login', async(req, res)=>{
             return res.status(400).json({error:"Invalid email or password"});
         }
         const token=jwt.sign(
-            {userId:user._id, orgId:user.organization._id},
+            {userId:user._id, orgId:user.organization._id, role:user.role},
             process.env.JWT_SECRET,
             {expiresIn:'1d'}
         );
@@ -61,6 +66,7 @@ router.post('/login', async(req, res)=>{
                 _id:user._id,
                 name:user.name,
                 email:user.email,
+                role:user.role,
                 organization:user.organization
             }
         });
@@ -100,6 +106,7 @@ router.get('/me', authMiddleware, async(req, res)=>{
             _id: user._id,
             name:user.name,
             email:user.email,
+            role:user.role,
             organization:user.organization
         });
     }catch(error){
@@ -107,4 +114,25 @@ router.get('/me', authMiddleware, async(req, res)=>{
         res.status(500).json({error:'Server error'});
     }
 });
+
+router.put('/organization/:id/brief', authMiddleware, requireRole(['admin', 'collbaorator']), async(req, res)=>{
+    try{
+        const orgId=req.params.id;
+        const {projectBrief}=req.body;
+
+        const updatedOrg=await Organization.findByIdAndUpdate(
+            orgId,
+            {projectBrief},
+            {new:true}
+        );
+
+        if(!updatedOrg)return res.status(404).json({error:"Organization not found"});
+        res.status(200).json(updatedOrg);
+
+    }catch(error){
+        console.error("Brief Update Error: ", error);
+        res.status(500).json({error:"Failed to update project brief"});
+    }
+});
+
 module.exports = router;

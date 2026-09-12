@@ -11,7 +11,7 @@ const {Server}=require('socket.io');
 const userRoutes=require('./routes/userRoutes');
 const taskRoutes=require('./routes/taskRoutes');
 const queryRoutes=require('./routes/queryRoutes');
-const authMiddleware=require('./middleware/auth');
+const {authMiddleware}=require('./middleware/auth');
 const aiRoutes=require('./routes/aiRoutes');
 
 //Initializing express app

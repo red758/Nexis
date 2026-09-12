@@ -1,9 +1,10 @@
 const express=require('express');
 const router=express.Router();
 const Task=require('../models/Task');
+const {requireRole}=require('../middleware/auth');
 
 //Delete a task from organization 
-router.delete('/:id', async (req,res)=>{
+router.delete('/:id',requireRole(['admin']), async (req,res)=>{
     try{
         //Extracting id from route parameters
         const taskId=req.params.id;
@@ -20,7 +21,7 @@ router.delete('/:id', async (req,res)=>{
 });
 
 //Create tasks
-router.post('/:name',async (req,res)=>{
+router.post('/',async (req,res)=>{
     try{
         console.log('task creation started');
         const {title, assigneeId, organizationId}=req.body;
