@@ -9,7 +9,7 @@ export default function AuthBrand() {
       </div>
       <div className="text-center mb-8">
         <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Nexis Workspace</h2>
-        <p className="text-slate-500 mt-2 text-sm">Enterprise team collaboration</p>
+        <p className="text-slate-600 mt-2 text-sm">Enterprise team collaboration</p>
       </div>
     </>
   );
