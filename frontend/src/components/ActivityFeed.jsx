@@ -3,10 +3,6 @@ export default function ActivityFeed({ notifications }) {
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
       <div className="bg-slate-50 border-b border-slate-200 p-4">
         <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-slate-500"></span>
-          </span>
           Activity Feed
         </h3>
       </div>

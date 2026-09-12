@@ -1,10 +1,10 @@
-const TABS = ['overview', 'tasks', 'chat', 'documents'];
+const Tabs = ['overview', 'tasks', 'chat', 'documents'];
 
 export default function TabBar({ activeTab, onTabChange }) {
   return (
-    <div className="bg-white border-b border-slate-200 px-8 sticky top-0 z-10">
+    <div className="bg-white border-b border-slate-200 px-8 sticky top-17 z-10">
       <div className="flex space-x-8">
-        {TABS.map((tab) => (
+        {Tabs.map((tab) => (
           <button
             key={tab}
             onClick={() => onTabChange(tab)}

@@ -1,13 +1,9 @@
 ﻿import RoleGuard from './RoleGuard';
 
-// AiCopilot: AI task generation panel.
-// Clients cannot use AI planning — they see a message instead.
-// Only admin and developer roles get the actual prompt input.
-
 export default function AiCopilot({ aiPrompt, setAiPrompt, isAiLoading, onSubmit }) {
   return (
     <div className="bg-white rounded-xl p-6 md:p-8 border border-slate-200 shadow-sm">
-      <h3 className="text-xl font-bold mb-1 text-slate-900 flex items-center gap-2">✦ Nexis AI Copilot</h3>
+      <h3 className="text-xl font-bold mb-1 text-slate-900 flex items-center gap-2">Nexis AI Copilot</h3>
 
       <RoleGuard
         allow={['admin', 'developer']}
