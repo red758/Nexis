@@ -6,10 +6,9 @@ const Task=require('../models/Task');
 router.post('/generate',async(req,res)=>{
     try{
         const {prompt, organizationId, assigneeId, userName}=req.body;
-        //Inititalizing google gemini
+        //Inititalizing groq
         const groq=new  Groq({apiKey: process.env.GROQ_API_KEY});
 
-        //Prompt Engineering(Forcing AI to act like a Senior Technical Project Manager)
         const aiPrompt = `
             You are a Technical Project Manager. 
             Goal: "${prompt}".
@@ -32,7 +31,7 @@ router.post('/generate',async(req,res)=>{
 
         const aiGeneratedTasks=parsedData.tasks;
 
-        //Convert AI response of taak in list
+        //Convert AI response of task in list
         const taskToInsert=aiGeneratedTasks.map(title=>({
             title:title,
             status:'Todo',

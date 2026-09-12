@@ -137,8 +137,11 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
+      
       <Navbar currentUser={currentUser} onLogout={handleSafeLogout} />
+      
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+      
       <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8">
 
         {activeTab === 'overview' && (

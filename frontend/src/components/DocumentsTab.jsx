@@ -10,6 +10,7 @@ export default function DocumentsTab({
 }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
       <ProjectBrief
         projectBrief={projectBrief}
         setProjectBrief={setProjectBrief}
@@ -17,7 +18,9 @@ export default function DocumentsTab({
         setIsEditingBrief={setIsEditingBrief}
         onSave={onSaveBrief}
       />
+      
       <ProjectAssets />
+    
     </div>
   );
 }

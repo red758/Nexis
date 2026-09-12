@@ -1,15 +1,12 @@
 ﻿import RoleGuard from './RoleGuard';
 
-// ProjectBrief: displays the project requirements document.
-// Only admin and developer can edit. Clients see it as read-only.
-
 export default function ProjectBrief({
   projectBrief,
   setProjectBrief,
   isEditingBrief,
   setIsEditingBrief,
   onSave,
-}) {
+}){
   return (
     <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-6 md:p-8">
       <div className="flex justify-between items-end mb-6 border-b border-slate-100 pb-4">
@@ -32,6 +29,7 @@ export default function ProjectBrief({
             {isEditingBrief ? 'Save' : 'Edit'}
           </button>
         </RoleGuard>
+      
       </div>
 
       {isEditingBrief ? (
@@ -46,6 +44,7 @@ export default function ProjectBrief({
           {projectBrief}
         </div>
       )}
+    
     </div>
   );
 }

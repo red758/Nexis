@@ -14,8 +14,9 @@ export default function ProjectAssets() {
           </div>
         </RoleGuard>
 
-        {/* File list — everyone can see and download */}
+        {/* File list — everyone can see and download (placholders are used for eg) */}
         <ul className="space-y-3">
+          
           <li className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-lg group">
             <div className="flex items-center gap-3">
               <span>Docs</span>
@@ -26,6 +27,7 @@ export default function ProjectAssets() {
             </div>
             <button className="text-blue-600 text-sm font-medium hover:underline">Download</button>
           </li>
+          
           <li className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-lg group">
             <div className="flex items-center gap-3">
               <span className="text-xl">photo</span>
@@ -36,6 +38,7 @@ export default function ProjectAssets() {
             </div>
             <button className="text-blue-600 text-sm font-medium hover:underline">Download</button>
           </li>
+        
         </ul>
       </div>
     </div>
