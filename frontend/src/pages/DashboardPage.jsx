@@ -147,7 +147,7 @@ export default function DashboardPage() {
   // --- UI RENDER (The Minimalist Design you approved) ---
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
-      {/* ULTRA CLEAN NAVBAR */}
+      {/* NAVBAR */}
       <nav className="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 bg-slate-900 rounded-md flex items-center justify-center text-white">
