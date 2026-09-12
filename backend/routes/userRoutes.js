@@ -1,4 +1,3 @@
-// backend/routes/userRoutes.js
 const express = require('express');
 const router = express.Router();
 const bcrypt=require('bcryptjs');
@@ -115,7 +114,8 @@ router.get('/me', authMiddleware, async(req, res)=>{
     }
 });
 
-router.put('/organization/:id/brief', authMiddleware, requireRole(['admin', 'collbaorator']), async(req, res)=>{
+//to add brief and updates too
+router.put('/organization/:id/brief', authMiddleware, requireRole(['admin', 'developer']), async(req, res)=>{
     try{
         const orgId=req.params.id;
         const {projectBrief}=req.body;
