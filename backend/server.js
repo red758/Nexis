@@ -13,6 +13,7 @@ const taskRoutes=require('./routes/taskRoutes');
 const queryRoutes=require('./routes/queryRoutes');
 const {authMiddleware}=require('./middleware/auth');
 const aiRoutes=require('./routes/aiRoutes');
+const assetRoutes=require('./routes/assetRoutes');
 
 //Initializing express app
 const app=express();

@@ -71,7 +71,7 @@ nexis/
 │   │   ├─ context/  
 │   │   │   └─ AuthContext.jsx  
 │   │   ├─ hooks/  
-│   │   │   └─ useRole.js           \# clean role booleans  
+│   │   │   └─ useRole.js     
 │   │   ├─ App.jsx  
 │   │   └─ main.jsx  
 │   └─ vite.config.js  

@@ -7,10 +7,9 @@ export default function useRole() {
   const role = currentUser?.role;
 
   return {
-    role,                              
-    isAdmin: role === 'admin',         
-    isDeveloper: role === 'developer', 
-    isClient: role === 'client',    
-    isTeamMember: role === 'admin' || role === 'developer', 
+    role//,                              
+    //isAdmin: role === 'admin',         
+    //isDeveloper: role === 'collabortaor', 
+    //isClient: role === 'client'
   };
 }
