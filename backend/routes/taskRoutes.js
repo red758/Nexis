@@ -1,18 +1,38 @@
 const express=require('express');
 const router=express.Router();
 const Task=require('../models/Task');
+const User = require('../models/User'); 
 const {requireRole}=require('../middleware/auth');
 
 //Delete a task from organization 
-router.delete('/:id',requireRole(['admin']), async (req,res)=>{
+router.delete('/:id', requireRole(['admin']), async (req,res)=>{
     try{
+        console.log('on delete');
         //Extracting id from route parameters
         const taskId=req.params.id;
-        console.log(taskId);
+
         if(!taskId){
             res.status(404).json({message:"Task not found"});
         }
+
+        const task=await Task.findById(taskId);
+        if(!task){
+            return res.status(404).json({message:"Task not found"});
+        } 
+
+        const adminUser = await User.findById(req.user.userId);
+        const userName = adminUser ? adminUser.name : "User";
+
+        //console.log(task);
         await Task.findByIdAndDelete(taskId);
+
+        const roomString = task.organization.toString();
+
+        const io=req.app.get('io');
+        io.to(roomString).emit('task_deleted',{
+            message:`Task ${task.title} was deleted by ${userName}`
+        });
+
         res.status(200).json({message:'Task deleted successfully'});
     }catch(error){
         console.error(error);
@@ -24,18 +44,21 @@ router.delete('/:id',requireRole(['admin']), async (req,res)=>{
 router.post('/',async (req,res)=>{
     try{
         console.log('task creation started');
-        const {title, assigneeId, organizationId}=req.body;
-        const userName=req.params.name;
+
+        const {title, assigneeId, organizationId, userName}=req.body;
+        
         const newTask=await Task.create({
             title:title,
             assignee: assigneeId,
             organization:organizationId
         });
 
+        const roomString = String(organizationId);
+
         //Websocket Shout (Access the io object)
         const io=req.app.get('io');
 
-        io.to(organizationId).emit('task_added',{
+        io.to(roomString).emit('task_added',{
             message: `A new task was added: ${title} by ${userName}` 
         });
 
@@ -70,8 +93,12 @@ router.put('/:id',async (req,res)=>{
             {status:status},
             {new:true} //tells to return the updated version of task
         );
+
+        const roomString=String(organizationId);
+
         const io=req.app.get('io');
-        io.to(organizationId).emit('task_updated',{
+        
+        io.to(roomString).emit('task_updated',{
             message:`${userName} changed "${title}" status to ${status}`
         });
         res.status(200).json(updatedTask);

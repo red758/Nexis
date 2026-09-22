@@ -52,28 +52,39 @@ export default function DashboardPage() {
     if (orgId) {
       fetchTasks(orgId);
       runDynamicQuery(orgId, queryType);
+      
       socket.emit('join_workspace', orgId);
+      
       socket.on('task_added', (data) => {
         setNotifications((prev) => [data.message, ...prev]);
         fetchTasks(orgId);
         runDynamicQuery(orgId, queryType);
       });
+      
       socket.on('task_updated', (data) => {
         setNotifications((prev) => [data.message, ...prev]);
         fetchTasks(orgId);
         runDynamicQuery(orgId, queryType);
       });
+      
+      socket.on('task_deleted', (data)=>{
+        setNotifications((prev) => [data.message,...prev]);
+        fetchTasks(orgId);
+        runDynamicQuery(orgId, queryType);
+      });
+
       return () => {
         socket.off('task_added');
         socket.off('task_updated');
+        socket.off('task_deleted');
       };
     }
-  }, [orgId, queryType, currentUser]);
+  }, [orgId, queryType]);
 
   const handleCreateTask = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/tasks', { title: taskTitle, assigneeId: currentUser._id, organizationId: orgId });
+      await axios.post(`http://localhost:5000/api/tasks`, { title: taskTitle, assigneeId: currentUser._id, organizationId: orgId, userName: currentUser.name});
       setTaskTitle('');
       fetchTasks(orgId);
       runDynamicQuery(orgId, queryType);
