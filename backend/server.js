@@ -63,7 +63,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/tasks', authMiddleware, taskRoutes);
 app.use('/api/query', authMiddleware, queryRoutes);
 app.use('/api/ai', authMiddleware, aiRoutes);
-//app.use('/api/assets', authMiddleware, assetRoutes);
+app.use('/api/assets', authMiddleware, assetRoutes);
 
 // a simple test route
 /*app.get('/api/health',(req,res)=>{

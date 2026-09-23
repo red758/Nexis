@@ -13,7 +13,7 @@ const storage=new CloudinaryStorage({
     cloudinary:cloudinary,
     params:{
         folder:'nexis_assets', //cloudinary will create a folder with this name 
-        allowed_formats:['jpg', 'png', 'jpeg', 'pdf', 'zip'], // allowed formats
+        allowed_formats: ['jpg', 'png', 'jpeg', 'pdf', 'zip', 'docx', 'doc', 'txt', 'csv', 'xlsx'], // allowed formats
         resource_type:'auto'
     }
 });

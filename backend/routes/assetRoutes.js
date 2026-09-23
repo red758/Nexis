@@ -19,13 +19,23 @@ router.get('/:orgId',async(req,res)=>{
 });
 
 //Upload a new asset
-router.post('/:orgId', requireRole(['admin', 'collaborator']), upload.single('file'), 
+router.post('/:orgId', requireRole(['admin', 'collaborator']), function (req, res, next) {
+    upload.single('file')(req, res, function (err) {
+        if (err) {
+            console.log("🔥 CLOUDINARY/MULTER CRASHED:", err);
+            return res.status(500).json({ error: err.message });
+        }
+        // If upload succeeds, move to the next function
+        next(); 
+    });
+},
     async(req,res)=>{
         try{
-            
             if(!req.file){
                 return res.status(400).json({error:"No file uploaded"});
             }
+
+            console.log("Cloudinary Success! URL:", req.file.path);
 
             const newAsset=await Asset.create({
                 fileName: req.file.originalname,
@@ -43,3 +53,15 @@ router.post('/:orgId', requireRole(['admin', 'collaborator']), upload.single('fi
         }
     }
 );
+
+//delete an Asset
+router.delete('/:id', requireRole(['admin', 'collaborator']), async(req, res)=>{
+    try{
+        await Asset.findByIdAndDelete(req.params.id);
+        res.status(200).json({message:"Asset deleted"});
+    }catch(error){
+        res.status(500).json({error:"Failed to delete asset"});
+    }
+});
+
+module.exports=router;
