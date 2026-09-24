@@ -70,6 +70,7 @@ export default function ProjectAssets() {
     }
   };
 
+
   return (
     <div className="lg:col-span-1">
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
@@ -88,7 +89,7 @@ export default function ProjectAssets() {
           <RoleGuard allow={['admin', 'developer']}>
             <div 
               onClick={!isUploading ? handleBoxClick : undefined}
-              className={`mb-6 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${ isUploading ? 'border-slate-200 bg-slate-50 cursor-wait' : 'border-slate-300 hover:bg-slate-50 cursor-pointer'}`}
+              className={`mb-6 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${ isUploading ? 'border-slate-200 bg-slate-50 cursor-wait pointer-events-none' : 'border-slate-300 hover:bg-slate-50 cursor-pointer'}`}
             >
               {
                 isUploading ? (
@@ -113,7 +114,7 @@ export default function ProjectAssets() {
             assets.length===0 ? (
               <p className="text-xs text-center text-slate-400 py-4">No assets uploaded yet</p>
             ) : (
-              assets.map((asset)=>{
+              assets.map((asset)=>(
                 <li key={asset._id} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-lg group">
                   <div className="flex items-center gap-3 overflow-hidden">
                     
@@ -133,17 +134,17 @@ export default function ProjectAssets() {
                   
                   </div>
                   
-                  {/*Download button - using cloudinary url*/}
+                  {/*view button - using cloudinary url*/}
                   <a
-                    href={asset.fileUrl}
+                    href={asset.fileUrl.replace('/upload/', '/upload/fl_attachment/')}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 text-sm font-medium hover:underline shrink-0 ml-2"
+                    className="text-blue-600 text-sm font-medium hover:underline shrink-0 ml-2 cursor-pointer"
                   > 
                     View 
                   </a>
                 </li>
-              })
+              ))
             )
           }
 

@@ -1,6 +1,18 @@
 import {createContext, useState, useEffect} from 'react';
 import axios from 'axios';
 
+// Attach JWT token to every outgoing axios request automatically.
+// This means we never manually add Authorization headers in individual API calls.
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem('nexis_token');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
 export const AuthContext=createContext();
 
 export const AuthProvider=({children})=>{

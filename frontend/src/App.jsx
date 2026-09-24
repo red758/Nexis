@@ -1,22 +1,10 @@
 ﻿import { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import axios from 'axios';
 import { AuthContext } from './context/AuthContext';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Attach JWT token to every outgoing axios request automatically.
-// This means we never manually add Authorization headers in individual API calls.
-axios.interceptors.request.use((config) => {
-  const token = localStorage.getItem('nexis_token');
-  if (token) {
-    config.headers['Authorization'] = `Bearer ${token}`;
-  }
-  return config;
-}, (error) => {
-  return Promise.reject(error);
-});
 
 function App() {
   const { currentUser, loading } = useContext(AuthContext);
