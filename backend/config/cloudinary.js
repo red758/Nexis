@@ -9,13 +9,23 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const storage=new CloudinaryStorage({
-    cloudinary:cloudinary,
-    params:{
-        folder:'nexis_assets', //cloudinary will create a folder with this name 
-        allowed_formats: ['jpg', 'png', 'jpeg', 'pdf', 'zip', 'docx', 'doc', 'txt', 'csv', 'xlsx'], // allowed formats
-        resource_type:'auto'
+// 2. Set up the Storage Bridge
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
+    // We dynamically check the file type. 
+    // If it's a PDF, DOCX, ZIP, etc., we FORCE Cloudinary to treat it as 'raw' data!
+    let resourceType = 'auto';
+    if (file.originalname.match(/\.(pdf|zip|docx|doc|csv|xlsx|txt)$/i)) {
+      resourceType = 'raw';
     }
+
+    return {
+      folder: 'nexis_assets',
+      resource_type: resourceType, // Dynamically set to 'raw' or 'auto'
+      allowed_formats: ['jpg', 'png', 'jpeg', 'pdf', 'zip', 'docx', 'doc', 'txt', 'csv', 'xlsx']
+    };
+  }
 });
 
 const upload=multer({storage: storage});

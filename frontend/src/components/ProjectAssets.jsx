@@ -8,6 +8,8 @@ export default function ProjectAssets() {
   const {currentUser}=useContext(AuthContext);
   const orgId = currentUser?.organization?._id || currentUser?.organization;
   
+  const token = currentUser?.token || localStorage.getItem('nexis_token');
+
   const [assets, setAssets]=useState([]);
   const [isUploading, setIsUploading]=useState(false);
 
@@ -37,7 +39,6 @@ export default function ProjectAssets() {
   //handle actual upload process
   const handleUpload = async (e)=>{
 
-    // BUG FIX: Ensure this is actually a file input event!
     if (!e.target || !e.target.files || e.target.files.length === 0) {
       console.log("no file found");
       return; 
@@ -56,6 +57,7 @@ export default function ProjectAssets() {
       const response = await axios.post(`http://localhost:5000/api/assets/${orgId}`, formData, {
         headers: {
           'Content-Type':'multipart/form-data',
+          'Authorization': `Bearer ${token}`
         },  
       });
       setAssets((prev)=>[response.data, ...prev]);
@@ -67,6 +69,47 @@ export default function ProjectAssets() {
       if (fileInputRef.current) {
         fileInputRef.current.value = null; 
       }
+    }
+  };
+
+    // SECURE FIXED DOWNLOAD ACTION HANDLER
+  // SECURE FIXED DOWNLOAD ACTION HANDLER
+  const handleSecureDownload = async (assetId, fileName) => {
+    try {
+      const freshToken = currentUser?.token || localStorage.getItem('nexis_token'); 
+
+      if (!freshToken) {
+        alert("Authentication context vanished. Please log out and log back in.");
+        return;
+      }
+
+      // 1. Tell Axios we expect binary data (a Blob), not JSON!
+      const response = await axios.get(`http://localhost:5000/api/assets/download/${assetId}`, {
+        headers: {
+          'Authorization': `Bearer ${freshToken}` 
+        },
+        responseType: 'blob' // <--- THIS IS CRITICAL FOR FILES!
+      });
+
+      // 2. Create a local URL for the downloaded binary data
+      const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+
+      // 3. Programmatically spawn the browser window trigger anchor loop
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.setAttribute('download', fileName);
+      link.style.display = 'none';
+      
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up DOM state signatures
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+
+    } catch (error) {
+      console.error("Secure asset retrieval protocol aborted:", error);
+      alert("Download failed. Your session may have expired or you lack organization access.");
     }
   };
 
@@ -135,14 +178,13 @@ export default function ProjectAssets() {
                   </div>
                   
                   {/*view button - using cloudinary url*/}
-                  <a
-                    href={asset.fileUrl.replace('/upload/', '/upload/fl_attachment/')}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 text-sm font-medium hover:underline shrink-0 ml-2 cursor-pointer"
-                  > 
-                    View 
-                  </a>
+                  <button
+                  
+                  onClick={(e) =>{ e.preventDefault();  handleSecureDownload(asset._id, asset.fileName)}}
+                  className="text-blue-600 text-sm font-medium hover:underline shrink-0 ml-2 cursor-pointer bg-transparent border-none p-0 outline-none"
+                >
+                  Download
+                </button>
                 </li>
               ))
             )
