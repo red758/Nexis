@@ -84,17 +84,31 @@ router.post('/:orgId', requireRole(['admin', 'collaborator']), function (req, re
 );
 
 //delete an Asset
-router.delete('/:id', requireRole(['admin', 'collaborator']), async(req, res)=>{
+router.delete('/:id', requireRole(['admin']), async(req, res)=>{
     try{
+        const asset = await Asset.findByIdAndDelete(req.params.id);
+        if(!asset){
+            return res.status(404).json({error: "Asset not found"});
+        }
+
+        //First asking the cloudinary to delete the file
+        if(asset.cloudinaryPublicId){
+            await cloudinary.uploader.destroy(asset.cloudinaryPublicId, {
+                resource_type:asset.resourceType || 'raw'
+            });
+            console.log(`Deleted physical file from cloudinary: ${asset.cloudinaryPublicId}`);
+        }
+        //Then Delete from database
         await Asset.findByIdAndDelete(req.params.id);
-        res.status(200).json({message:"Asset deleted"});
+
+        res.status(200).json({message:"Asset deleted permanently"});
     }catch(error){
+        console.error("Asset Deletion Error:", error);
         res.status(500).json({error:"Failed to delete asset"});
     }
 });
 
 // Download an asset 
-// Download an asset (The Secure Node.js Fetch Method)
 router.get('/download/:id', requireRole(['admin', 'collaborator']), async (req, res) => {
     try {
         const asset = await Asset.findById(req.params.id);

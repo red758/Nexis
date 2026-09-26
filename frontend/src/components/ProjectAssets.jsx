@@ -112,6 +112,25 @@ export default function ProjectAssets() {
     }
   };
 
+  const handleDeleteAsset= async (assetId)=>{
+    if(!window.confirm("Do want to permnently delete this file ?")) return;
+    
+    try{
+      const freshToken=currentUser?.token||localstorage.getItem('nexis_token');
+
+      await axios.delete(`http://localhost:5000/api/assets/${assetId}`,{
+        headers:{
+          'Authorization':`Bearer ${freshToken}`
+        }
+      });
+
+      setAssets((prev)=>prev.filter(asset=>asset._id !== assetId));
+    }catch(error){
+      console.error("Delete failed", error);
+      alert(error.response?.data?.error||"Failed to delete file");
+    }
+  }
+
 
   return (
     <div className="lg:col-span-1">
@@ -177,13 +196,26 @@ export default function ProjectAssets() {
                   </div>
                   
                   {/*view button - using cloudinary url*/}
-                  <button
-                  
-                  onClick={(e) =>{ e.preventDefault();  handleSecureDownload(asset._id, asset.fileName)}}
-                  className="text-blue-600 text-sm font-medium hover:underline shrink-0 ml-2 cursor-pointer bg-transparent border-none p-0 outline-none"
-                >
-                  Download
-                </button>
+                  <div className="flex items-center gap-3 shrink-0 ml-2">
+                    {/*Download button*/}
+                    <button
+                      onClick={(e) =>{ e.preventDefault();  handleSecureDownload(asset._id, asset.fileName)}}
+                      className="text-blue-600 text-sm font-medium hover:underline shrink-0 ml-2 cursor-pointer bg-transparent border-none p-0 outline-none"
+                    >
+                      Download
+                    </button>
+
+                    {/*Delete button*/}
+                    <RoleGuard allow={['admin']}>
+                      <button 
+                        onClick={(e)=>{e.preventDefault(); handleDeleteAsset(asset._id);}}
+                        className="text-red-500 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                        title="Delete permanently"
+                      >
+                        Delete
+                      </button>
+                    </RoleGuard>
+                  </div>
                 </li>
               ))
             )
