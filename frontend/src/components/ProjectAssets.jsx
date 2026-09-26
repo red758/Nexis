@@ -72,8 +72,7 @@ export default function ProjectAssets() {
     }
   };
 
-    // SECURE FIXED DOWNLOAD ACTION HANDLER
-  // SECURE FIXED DOWNLOAD ACTION HANDLER
+  // SECURELY DOWNLOAD FILE
   const handleSecureDownload = async (assetId, fileName) => {
     try {
       const freshToken = currentUser?.token || localStorage.getItem('nexis_token'); 
@@ -83,18 +82,18 @@ export default function ProjectAssets() {
         return;
       }
 
-      // 1. Tell Axios we expect binary data (a Blob), not JSON!
+      //Telling Axios we expect binary data (a Blob), not JSON!
       const response = await axios.get(`http://localhost:5000/api/assets/download/${assetId}`, {
         headers: {
           'Authorization': `Bearer ${freshToken}` 
         },
-        responseType: 'blob' // <--- THIS IS CRITICAL FOR FILES!
+        responseType: 'blob'
       });
 
-      // 2. Create a local URL for the downloaded binary data
+      //Creating a local URL for the downloaded binary data
       const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
 
-      // 3. Programmatically spawn the browser window trigger anchor loop
+      //Programmatically spawning the browser window trigger anchor loop
       const link = document.createElement('a');
       link.href = blobUrl;
       link.setAttribute('download', fileName);
@@ -103,12 +102,12 @@ export default function ProjectAssets() {
       document.body.appendChild(link);
       link.click();
       
-      // Clean up DOM state signatures
+      //Cleaning up DOM state signatures
       document.body.removeChild(link);
       window.URL.revokeObjectURL(blobUrl);
 
-    } catch (error) {
-      console.error("Secure asset retrieval protocol aborted:", error);
+    }catch (error){
+      console.error("Secure asset retrieval stopped:", error);
       alert("Download failed. Your session may have expired or you lack organization access.");
     }
   };

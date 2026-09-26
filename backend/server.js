@@ -21,7 +21,8 @@ const app=express();
 //Middleware (allows us to to receive JSON and connects fronend/backned)
 app.use(cors());
 //Middleware to parse JSON string moving over requests
-app.use(express.json());
+app.use(express.json({limit: '15mb'}));
+app.use(express.urlencoded({limit: '15mb', extended: true}));
 
 //Websocket Setup
 const server=http.createServer(app);
