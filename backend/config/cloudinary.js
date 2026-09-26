@@ -23,14 +23,25 @@ const storage = new CloudinaryStorage({
     return {
       folder: 'nexis_assets',
       resource_type: resourceType, // Dynamically set to 'raw' or 'auto'
-      allowed_formats: ['jpg', 'png', 'jpeg', 'pdf', 'zip', 'docx', 'doc', 'txt', 'csv', 'xlsx']
     };
   }
 });
 
+//Applying filter to files
+const secureFileFilter=(req, file, cb)=>{
+    const allowedExtensions=/\.(jpg|jpeg|png|pdf|zip|docx|doc|csv|xlsx|txt)$/i;
+
+    if(file.originalname.match(allowedExtensions)){
+        cb(null,true);
+    }else{
+        cb(new Error("Security Alert: Invalid file type uploaded"),false);
+    }
+};
+
 const upload=multer({
     storage: storage,
-    limits:{fileSize: 10*1024*1024}
+    limits:{fileSize: 10*1024*1024},
+    fileFilter:secureFileFilter
 });
 
 module.exports={cloudinary, upload};
