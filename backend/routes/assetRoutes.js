@@ -4,7 +4,6 @@ const Asset=require('../models/Asset');
 const { requireRole }=require('../middleware/auth');
 const { upload }=require('../config/cloudinary');
 const { cloudinary } = require('../config/cloudinary');
-const https = require('https');
 
 //Get assets belonging to organization
 router.get('/:orgId',async(req,res)=>{
@@ -21,7 +20,8 @@ router.get('/:orgId',async(req,res)=>{
 });
 
 //Upload a new asset
-router.post('/:orgId', requireRole(['admin', 'collaborator']), function (req, res, next) {
+router.post('/:orgId', requireRole(['admin', 'collaborator']), 
+    function (req, res, next) {
         upload.single('file')(req, res, function (err) {
             if (err) {
                 console.log("CLOUDINARY/MULTER CRASHED:", err);
@@ -86,7 +86,7 @@ router.post('/:orgId', requireRole(['admin', 'collaborator']), function (req, re
 //delete an Asset
 router.delete('/:id', requireRole(['admin']), async(req, res)=>{
     try{
-        const asset = await Asset.findByIdAndDelete(req.params.id);
+        const asset = await Asset.findById(req.params.id);
         if(!asset){
             return res.status(404).json({error: "Asset not found"});
         }
@@ -114,7 +114,7 @@ router.get('/download/:id', requireRole(['admin', 'collaborator']), async (req, 
         const asset = await Asset.findById(req.params.id);
         if (!asset) return res.status(404).json({ error: "File not found" });
 
-        console.log(`☁️ Fetching file from Cloudinary: ${asset.fileUrl}`);
+        console.log(`Fetching file from Cloudinary: ${asset.fileUrl}`);
 
         // 1. Ask Cloudinary for the file using modern Fetch
         const cloudResponse = await fetch(asset.fileUrl);
@@ -122,7 +122,7 @@ router.get('/download/:id', requireRole(['admin', 'collaborator']), async (req, 
         // 2. If Cloudinary throws an error, STOP! Do not send a corrupted file to the user.
         if (!cloudResponse.ok) {
             console.error(`Cloudinary rejected the request: ${cloudResponse.status} ${cloudResponse.statusText}`);
-            return res.status(500).json({ error: "Failed to pull file from cloud storage." });
+            return res.status(500).json({ error: "Failed to get file from storage." });
         }
 
         // 3. Convert the response into raw binary data (Buffer)

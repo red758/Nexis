@@ -116,7 +116,7 @@ export default function ProjectAssets() {
     if(!window.confirm("Do want to permnently delete this file ?")) return;
     
     try{
-      const freshToken=currentUser?.token||localstorage.getItem('nexis_token');
+      const freshToken=currentUser?.token||localStorage.getItem('nexis_token');
 
       await axios.delete(`http://localhost:5000/api/assets/${assetId}`,{
         headers:{
