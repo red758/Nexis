@@ -5,7 +5,8 @@ const {requireRole}=require('../middleware/auth');
 
 router.get('/:orgId', async(req,res)=>{
     try{
-        const messages=await Message.find({organization:req.params.id})
+        console.log(`Fetching existing chat for: ${req.params.orgId}`);
+        const messages=await Message.find({organization:req.params.orgId})
             .populate('sender','name role')
             .sort({createdAt:1})
             .limit(50);
@@ -27,12 +28,18 @@ router.post('/', async(req,res)=>{
             organization: organizationId
         });
 
-        //collect data of user with the help of message and populate, to avoid ugly ui of message
+        //Collect data of user with the help of message and populate, to avoid ugly ui of message
         const populatedMessage=await Message.findById(newMessage._id).populate('sender','name role');
+
+        //Check if populated correctly
+        console.log("Message saved and populated:", populatedMessage.text);
 
         //the websocket broadcast
         const io=req.app.get('io');
         const roomString=String(organizationId);
+
+        //Check the room
+        console.log(`Broadcasting to room: ${roomString}`);
 
         io.to(roomString).emit('receive_message',populatedMessage);
 

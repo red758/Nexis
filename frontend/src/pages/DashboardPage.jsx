@@ -180,7 +180,7 @@ export default function DashboardPage() {
           />
         )}
 
-        {activeTab === 'chat' && <ChatTab />}
+        {activeTab === 'chat' && (<ChatTab socket={socket}/>)}
 
         {activeTab === 'documents' && (
           <DocumentsTab
