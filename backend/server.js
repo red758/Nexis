@@ -15,6 +15,7 @@ const {authMiddleware}=require('./middleware/auth');
 const aiRoutes=require('./routes/aiRoutes');
 const assetRoutes=require('./routes/assetRoutes');
 const chatRoutes=require('./routes/chatRoutes');
+const projectRoutes=require('./routes/projectRoutes');
 
 //Initializing express app
 const app=express();
@@ -67,6 +68,7 @@ app.use('/api/query', authMiddleware, queryRoutes);
 app.use('/api/ai', authMiddleware, aiRoutes);
 app.use('/api/assets', authMiddleware, assetRoutes);
 app.use('/api/chat',authMiddleware, chatRoutes);
+app.use('/api/projects', authMiddleware, projectRoutes);
 
 // a simple test route
 /*app.get('/api/health',(req,res)=>{
