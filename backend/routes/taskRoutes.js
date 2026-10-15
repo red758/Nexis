@@ -26,7 +26,7 @@ router.delete('/:id', requireRole(['admin']), async (req,res)=>{
         //console.log(task);
         await Task.findByIdAndDelete(taskId);
 
-        const roomString = task.organization.toString();
+        const roomString = task.project.toString();//be careful organization is changed to project here
 
         const io=req.app.get('io');
         io.to(roomString).emit('task_deleted',{
@@ -45,15 +45,15 @@ router.post('/',async (req,res)=>{
     try{
         console.log('task creation started');
 
-        const {title, assigneeId, organizationId, userName}=req.body;
+        const {title, assigneeId, projectId, userName}=req.body;
         
         const newTask=await Task.create({
             title:title,
             assignee: assigneeId,
-            organization:organizationId
+            project:projectId
         });
 
-        const roomString = String(organizationId);
+        const roomString = String(projectId);
 
         //Websocket Shout (Access the io object)
         const io=req.app.get('io');
@@ -71,11 +71,11 @@ router.post('/',async (req,res)=>{
 });
 
 //Get tasks of the particular Workspace Organization
-router.get('/:orgId', async (req,res)=>{
+router.get('/:projectId', async (req,res)=>{
     try{
-        const {orgId}=req.params
+        const {projectId}=req.params
 
-        const tasks=await Task.find({organization: orgId}).populate('assignee');
+        const tasks=await Task.find({project: projectId}).populate('assignee');
 
         res.status(200).json(tasks);
     }
@@ -87,14 +87,14 @@ router.get('/:orgId', async (req,res)=>{
 //Updating the task status
 router.put('/:id',async (req,res)=>{
     try{
-        const {status, organizationId, title, userName} = req.body;
+        const {status, projectId, title, userName} = req.body;
         const updatedTask = await Task.findByIdAndUpdate(
             req.params.id,
             {status:status},
             {new:true} //tells to return the updated version of task
         );
 
-        const roomString=String(organizationId);
+        const roomString=String(projectId);
 
         const io=req.app.get('io');
         

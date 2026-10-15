@@ -5,7 +5,7 @@ const Task=require('../models/Task');
 
 router.post('/generate',async(req,res)=>{
     try{
-        const {prompt, organizationId, assigneeId, userName}=req.body;
+        const {prompt, projectId, assigneeId, userName}=req.body;
         //Inititalizing groq
         const groq=new  Groq({apiKey: process.env.GROQ_API_KEY});
 
@@ -36,15 +36,15 @@ router.post('/generate',async(req,res)=>{
             title:title,
             status:'Todo',
             assignee:assigneeId,
-            organization:organizationId
+            project:projectId
         }));
 
         //Add task in database
         const savedTasks=await Task.insertMany(taskToInsert);
 
         const io=req.app.get("io");
-        
-        io.to(organizationId).emit('task_added',{
+        const roomString = String(projectId);
+        io.to(roomString).emit('task_added',{
             message :`AI Copilot generated ${savedTasks.length} tasks for ${userName}`
         });
 
