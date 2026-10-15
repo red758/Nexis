@@ -5,7 +5,7 @@ const {requireRole} = require('../middleware/auth');
 
 router.post('/', requireRole(['admin']), async(req,res)=>{
     try{
-        const {name, organiationId, assignedMembers}=req.body;
+        const {name, organizationId, assignedMembers}=req.body;
 
         const members=assignedMembers || [];
 

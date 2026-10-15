@@ -8,7 +8,7 @@ router.post('/', async (req,res)=>{
         console.log('query execution started');
         const{projectId, groupBy}=req.body;
         const mongoose=require('mongoose');
-        const orgObjectId=new mongoose.Types.ObjectId(projectId);
+        const projectObjectId=new mongoose.Types.ObjectId(projectId);
         
         //Filter by organization first for security
         const pipeline=[
@@ -37,7 +37,6 @@ router.post('/', async (req,res)=>{
                         preserveNullAndEmptyArrays: true
                     }
                 },
-                
                 {
                     $group:{
                         _id:{ $ifNull: ["$userDetails.name","Unassigned"] },

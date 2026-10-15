@@ -8,6 +8,7 @@ import OverviewTab from '../components/OverviewTab';
 import TasksTab from '../components/TasksTab';
 import ChatTab from '../components/ChatTab';
 import DocumentsTab from '../components/DocumentsTab';
+import {useNavigate} from 'react-router-dom';
 
 const socket = io('http://localhost:5000');
 
@@ -146,10 +147,16 @@ export default function DashboardPage() {
     runDynamicQuery(orgId, newType);
   };
 
+  const navigate=useNavigate();
+
+  const handleBack= ()=>{
+    navigate('/')
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col">
       
-      <Navbar currentUser={currentUser} onLogout={handleSafeLogout} />
+      <Navbar currentUser={currentUser} onLogout={handleSafeLogout} onBack={handleBack} />
       
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
       
