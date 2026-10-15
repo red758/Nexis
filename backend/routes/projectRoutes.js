@@ -1,7 +1,7 @@
 const express=require('express');
 const router=express.Router();
 const Project=require('../models/Project');
-const {requireRole0} = require('../midelware/auth');
+const {requireRole} = require('../middleware/auth');
 
 router.post('/', requireRole(['admin']), async(req,res)=>{
     try{
