@@ -2,13 +2,7 @@ const mongoose=require('mongoose');
 
 const organizationSchema=new mongoose.Schema({
     
-    name:{type:String, required: true},
-    
-    projectBrief:{
-        type:String,
-        default:"Welcome to your new workspace. Add your project requirements, scope, and core goals here."
-    },
-    
+    name:{type:String, required: true},    
     createdAt:{type:Date, default:Date.now}
 });
 

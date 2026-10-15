@@ -109,7 +109,7 @@ router.delete('/:id', requireRole(['admin']), async(req, res)=>{
 });
 
 // Download an asset 
-router.get('/download/:id', requireRole(['admin', 'collaborator']), async (req, res) => {
+router.get('/download/:id', requireRole(['admin', 'collaborator','client']), async (req, res) => {
     try {
         const asset = await Asset.findById(req.params.id);
         if (!asset) return res.status(404).json({ error: "File not found" });

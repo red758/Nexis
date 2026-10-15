@@ -12,7 +12,7 @@ const taskSchema=new mongoose.Schema({
     
     assignee:{type:mongoose.Schema.Types.ObjectId, ref:'User'},
     
-    organization:{type:mongoose.Schema.Types.ObjectId, ref:'Organization', required:true},
+    project:{type:mongoose.Schema.Types.ObjectId, ref:'Project', required:true},
     
     createdAt:{type:Date, default:Date.now}
 });
