@@ -12,9 +12,16 @@ const messageSchema=new mongoose.Schema({
         ref:'User',
         required:true
     },
-    organization:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Organization',
+    //determines what type of room is the message in
+    roomType:{
+        type:String,
+        enum:['client-group','internal-group','direct'],
+        required:true
+    },
+    //if its a group chat, then this becomes project Id.
+    //if its a direct message, we will generate a unique string combining both User Id
+    roomReferenceId:{
+        type:String,
         required:true
     },
     createdAt:{

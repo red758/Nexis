@@ -3,10 +3,10 @@ import axios from 'axios';
 import RoleGuard from './RoleGuard';
 import {AuthContext} from '../context/AuthContext';
 
-export default function ProjectAssets() {
+export default function ProjectAssets({projectId}) {
 
   const {currentUser}=useContext(AuthContext);
-  const orgId = currentUser?.organization?._id || currentUser?.organization;
+  //const orgId = currentUser?.organization?._id || currentUser?.organization;
   
   const token = currentUser?.token || localStorage.getItem('nexis_token');
 
@@ -17,11 +17,11 @@ export default function ProjectAssets() {
 
   //Fetch existing assets
   useEffect(()=>{
-    if(!orgId) return;
+    if(!projectId) return;
 
     const fetchAssets = async ()=>{
       try{
-        const response=await axios.get(`http://localhost:5000/api/assets/${orgId}`);
+        const response=await axios.get(`http://localhost:5000/api/assets/${projectId}`);
         setAssets(response.data);
       }catch(error){
         console.error("Failed to fetch assets: ", error);
@@ -29,7 +29,7 @@ export default function ProjectAssets() {
     };
 
     fetchAssets();
-  }, [orgId]);
+  }, [projectId]);
 
   //Triggle file input when clicked
   const handleBoxClick=()=>{
@@ -54,7 +54,7 @@ export default function ProjectAssets() {
       //using formData cause JSON cannot hold files
       const formData=new FormData();
       formData.append('file', file); 
-      const response = await axios.post(`http://localhost:5000/api/assets/${orgId}`, formData, {
+      const response = await axios.post(`http://localhost:5000/api/assets/${projectId}`, formData, {
         headers: {
           'Content-Type':'multipart/form-data',
           'Authorization': `Bearer ${token}`
@@ -108,7 +108,7 @@ export default function ProjectAssets() {
 
     }catch (error){
       console.error("Secure asset retrieval stopped:", error);
-      alert("Download failed. Your session may have expired or you lack organization access.");
+      alert("Download failed. Your session may have expired or you lack project access.");
     }
   };
 

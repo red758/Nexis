@@ -6,13 +6,13 @@ const mongoose=require('mongoose');
 router.post('/', async (req,res)=>{
     try{
         console.log('query execution started');
-        const{organizationId, groupBy}=req.body;
+        const{projectId, groupBy}=req.body;
         const mongoose=require('mongoose');
-        const orgObjectId=new mongoose.Types.ObjectId(organizationId);
+        const projectObjectId=new mongoose.Types.ObjectId(projectId);
         
         //Filter by organization first for security
         const pipeline=[
-            {$match:{organization: orgObjectId}}
+            {$match:{project: projectObjectId}}
         ];
         
         if(groupBy==='status'){
@@ -37,7 +37,6 @@ router.post('/', async (req,res)=>{
                         preserveNullAndEmptyArrays: true
                     }
                 },
-                
                 {
                     $group:{
                         _id:{ $ifNull: ["$userDetails.name","Unassigned"] },

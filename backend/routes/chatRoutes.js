@@ -1,15 +1,14 @@
 const express=require('express');
 const router=express.Router();
 const Message=require('../models/Message');
-const {requireRole}=require('../middleware/auth');
 
-router.get('/:orgId', async(req,res)=>{
+router.get('/:projectId', async(req,res)=>{
     try{
-        console.log(`Fetching existing chat for: ${req.params.orgId}`);
-        const messages=await Message.find({organization:req.params.orgId})
+        console.log(`Fetching existing chat for: ${req.params.projectId}`);
+        const messages=await Message.find({roomReferenceId:req.params.projectId})
             .populate('sender','name role')
             .sort({createdAt:1})
-            .limit(50);
+            .limit(20);
 
         res.status(200).json(messages);
     } catch (error) {
@@ -20,12 +19,17 @@ router.get('/:orgId', async(req,res)=>{
 
 router.post('/', async(req,res)=>{
     try{
-        const {text, senderId, organizationId}=req.body;
+        const {text, senderId, projectId}=req.body;
+
+        //const senderRole=req.user.role;
+
+        const roomType='client-group';
 
         const newMessage=await Message.create({
             text,
             sender: senderId,
-            organization: organizationId
+            roomType: roomType,
+            roomReferenceId: projectId
         });
 
         //Collect data of user with the help of message and populate, to avoid ugly ui of message
@@ -36,7 +40,7 @@ router.post('/', async(req,res)=>{
 
         //the websocket broadcast
         const io=req.app.get('io');
-        const roomString=String(organizationId);
+        const roomString=String(projectId);
 
         //Check the room
         console.log(`Broadcasting to room: ${roomString}`);

@@ -4,7 +4,7 @@ import { AuthContext } from './context/AuthContext';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
 import ProtectedRoute from './components/ProtectedRoute';
-
+import HomePage from './pages/HomePage';
 
 function App() {
   const { currentUser, loading } = useContext(AuthContext);
@@ -23,18 +23,28 @@ function App() {
         {/* Public route: if already logged in, skip login and go to dashboard */}
         <Route
           path="/"
-          element={!currentUser ? <AuthPage /> : <Navigate to="/dashboard" />}
+          element={!currentUser ? <AuthPage /> : <Navigate to="/home" />}
         />
 
-        {/* Protected route: ProtectedRoute handles the auth check internally */}
         <Route
-          path="/dashboard"
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
+          }
+        />
+
+       {/* THE PROJECT DASHBOARD (Now requires a Project ID in the URL!) */}
+        <Route 
+          path="/project/:projectId" 
           element={
             <ProtectedRoute>
               <DashboardPage />
             </ProtectedRoute>
-          }
+          } 
         />
+        
       </Routes>
     </Router>
   );

@@ -6,9 +6,9 @@ const { upload }=require('../config/cloudinary');
 const { cloudinary } = require('../config/cloudinary');
 
 //Get assets belonging to organization
-router.get('/:orgId',async(req,res)=>{
+router.get('/:projectId',async(req,res)=>{
     try{
-        const assets=await Asset.find({organization: req.params.orgId})
+        const assets=await Asset.find({project: req.params.projectId})
             .populate('uploadedBy', 'name role') //get the uploader's name
             .sort({createdt: -1}); //gives newest files first
 
@@ -20,7 +20,7 @@ router.get('/:orgId',async(req,res)=>{
 });
 
 //Upload a new asset
-router.post('/:orgId', requireRole(['admin', 'collaborator']), 
+router.post('/:projectId', requireRole(['admin', 'developer']), 
     function (req, res, next) {
         upload.single('file')(req, res, function (err) {
             if (err) {
@@ -69,7 +69,7 @@ router.post('/:orgId', requireRole(['admin', 'collaborator']),
                 resourceType: resourceType,            
                 fileExtension: fileExt,                
                 uploadedBy: targetUserId,
-                organization: req.params.orgId
+                project: req.params.projectId
             });
 
             //Populate and return response
@@ -109,7 +109,7 @@ router.delete('/:id', requireRole(['admin']), async(req, res)=>{
 });
 
 // Download an asset 
-router.get('/download/:id', requireRole(['admin', 'collaborator']), async (req, res) => {
+router.get('/download/:id', requireRole(['admin', 'developer','client']), async (req, res) => {
     try {
         const asset = await Asset.findById(req.params.id);
         if (!asset) return res.status(404).json({ error: "File not found" });

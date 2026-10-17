@@ -1,11 +1,10 @@
 import {useState, useEffect, useContext, useRef} from 'react';
 import axios from'axios';
-import {io} from 'socket.io-client';
 import {AuthContext} from '../context/AuthContext';
 
-export default function ChatTab({socket}){
+export default function ChatTab({socket, projectId}){
   const {currentUser} = useContext(AuthContext);
-  const orgId=currentUser?.organization?._id || currentUser?.organization;
+  //const orgId=currentUser?.organization?._id || currentUser?.organization;
 
   const [messages, setMessages]=useState([]);
   const [newMessage, setNewMessage]=useState('');
@@ -19,32 +18,54 @@ export default function ChatTab({socket}){
   };
 
   useEffect(()=>{
-    if(!orgId) return;
+    console.log("1. CHAT TAB OPENED. ProjectId:", projectId, "Socket:", socket?.id);
+
+    if (!projectId || !socket) {
+      console.log("❌ Missing Project ID or Socket. Fetch aborted.");
+      return;
+    }
+
+    let isMounted=true
+
+    setIsLoading(true);
 
     //asking for history
     const fetchMessages=async ()=>{
       try{
-        const response=await axios.get(`http://localhost:5000/api/chat/${orgId}`);
-        setMessages(response.data);
-        setIsLoading(false);
+        console.log(`2. Asking backend for messages at /api/chat/${projectId}...`);
+
+        const response=await axios.get(`http://localhost:5000/api/chat/${projectId}`);
+        
+        console.log("3. Backend replied with data:", response.data);
+        
+        if(isMounted){
+          setMessages(response.data);
+          setIsLoading(false);
+          setTimeout(scrollToBottom, 100);
+        }
       }catch(error){
         console.error("Failed to fetch chat history: ",error);
+        if (isMounted) setIsLoading(false);
       }
     };
     fetchMessages();
 
     //telling which room we are in
-    socket.emit('join_workspace',orgId);
+    socket.emit('join_workspace',projectId);
 
     //listening for incoming shouts
-    socket.on('receive_message',(message)=>{
-      setMessages((prev)=>[...prev, message]);
-    });
-
-    return()=>{
-      socket.off('receive_message');
+    const handleReceiveMessage = (message) => {
+      setMessages((prev) => [...prev, message]);
     };
-  }, [orgId]);
+
+    socket.on('receive_message', handleReceiveMessage);
+
+    return () => {
+      isMounted = false;
+      socket.off('receive_message', handleReceiveMessage);
+    };
+
+  }, [projectId, socket]);
 
   useEffect(()=>{
     scrollToBottom();
@@ -59,7 +80,7 @@ export default function ChatTab({socket}){
       await axios.post('http://localhost:5000/api/chat',{
         text:newMessage,
         senderId: currentUser._id,
-        organizationId: orgId
+        projectId: projectId
       });
 
       setNewMessage('');

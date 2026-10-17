@@ -114,8 +114,8 @@ router.get('/me', authMiddleware, async(req, res)=>{
     }
 });
 
-//to add brief and updates too
-router.put('/organization/:id/brief', authMiddleware, requireRole(['admin', 'developer']), async(req, res)=>{
+//to add brief and updates too {commented since due to architcture shift projectRoutes.js was added and this route is depreciated}
+/*router.put('/organization/:id/brief', authMiddleware, requireRole(['admin', 'developer']), async(req, res)=>{
     try{
         const orgId=req.params.id;
         const {projectBrief}=req.body;
@@ -133,6 +133,6 @@ router.put('/organization/:id/brief', authMiddleware, requireRole(['admin', 'dev
         console.error("Brief Update Error: ", error);
         res.status(500).json({error:"Failed to update project brief"});
     }
-});
+});*/
 
 module.exports = router;

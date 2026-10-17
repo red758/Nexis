@@ -16,9 +16,9 @@ const assetSchema=new mongoose.Schema({
         required:true
     },
     
-    organization:{
+    project:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:'Organization',
+        ref:'Project',
         required:true
     },
     
