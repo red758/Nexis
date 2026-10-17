@@ -69,4 +69,16 @@ router.put('/:id/brief',requireRole(['admin','developer']), async(req,res)=>{
     }
 });
 
+router.get('/:id', async (req,res)=>{
+    try{
+        const project=await Project.findById(req.params.id);
+        
+        if(!project)return res.status(404).json({error:"Project not found"});
+        res.status(200).json(project);
+    }catch(error){
+        console.error("Fetch Project Error: ",error);
+        res.status(500).json({error:"Failed to feth projects"});
+    }
+});
+
 module.exports=router;

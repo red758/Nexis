@@ -9,38 +9,45 @@ import TasksTab from '../components/TasksTab';
 import ChatTab from '../components/ChatTab';
 import DocumentsTab from '../components/DocumentsTab';
 import {useNavigate} from 'react-router-dom';
+import {useParams} from 'react-router-dom';
 
 const socket = io('http://localhost:5000');
 
 export default function DashboardPage() {
   const { currentUser, logout } = useContext(AuthContext);
 
+  const {projectId}=useParams();
+  
   const [activeTab, setActiveTab] = useState('overview');
+  
+  const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [taskTitle, setTaskTitle] = useState('');
   const [notifications, setNotifications] = useState([]);
+  
   const [queryResults, setQueryResults] = useState([]);
   const [queryType, setQueryType] = useState('status');
   const [aiPrompt, setAiPrompt] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
+  
   const [projectBrief, setProjectBrief] = useState(currentUser?.organization?.projectBrief || 'Loading brief...');
   const [isEditingBrief, setIsEditingBrief] = useState(false);
 
-  const orgId = currentUser?.organization?._id || currentUser?.organization;
+  //const orgId = currentUser?.organization?._id || currentUser?.organization;
 
-  const fetchTasks = async (orgIdToFetch) => {
+  const fetchTasks = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/tasks/${orgIdToFetch}`);
+      const response = await axios.get(`http://localhost:5000/api/tasks/${projectId}`);
       setTasks(response.data);
     } catch (error) {
       console.error('Error fetching tasks: ', error);
     }
   };
 
-  const runDynamicQuery = async (orgIdToFetch, type) => {
+  const runDynamicQuery = async (type) => {
     try {
       const response = await axios.post('http://localhost:5000/api/query', {
-        organizationId: orgIdToFetch,
+        projectId: projectId,
         groupBy: type,
       });
       setQueryResults(response.data);
@@ -50,45 +57,58 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    if (orgId) {
-      fetchTasks(orgId);
-      runDynamicQuery(orgId, queryType);
-      
-      socket.emit('join_workspace', orgId);
-      
-      socket.on('task_added', (data) => {
-        setNotifications((prev) => [data.message, ...prev]);
-        fetchTasks(orgId);
-        runDynamicQuery(orgId, queryType);
-      });
-      
-      socket.on('task_updated', (data) => {
-        setNotifications((prev) => [data.message, ...prev]);
-        fetchTasks(orgId);
-        runDynamicQuery(orgId, queryType);
-      });
-      
-      socket.on('task_deleted', (data)=>{
-        setNotifications((prev) => [data.message,...prev]);
-        fetchTasks(orgId);
-        runDynamicQuery(orgId, queryType);
-      });
 
-      return () => {
-        socket.off('task_added');
-        socket.off('task_updated');
-        socket.off('task_deleted');
-      };
-    }
-  }, [orgId, queryType]);
+    if(!projectId) return;
+
+    const fetchProjectDetails=async()=>{
+      try{
+        const response=await axios.get(`http://localhost:5000/api/projects/${projectId}`);
+        setProject(response.data);
+        setProjectBrief(response.data.projectBrief);
+      }catch(error){
+        console.error("Failed to load project details: ",error)
+      }
+    };
+
+    fetchProjectDetails();
+    fetchTasks();
+    runDynamicQuery(queryType);
+
+    socket.emit('join_workspace', projectId);
+      
+    socket.on('task_added', (data) => {
+      setNotifications((prev) => [data.message, ...prev]);
+      fetchTasks();
+      runDynamicQuery(queryType);
+    });
+      
+    socket.on('task_updated', (data) => {
+      setNotifications((prev) => [data.message, ...prev]);
+      fetchTasks();
+      runDynamicQuery(queryType);
+    });
+      
+    socket.on('task_deleted', (data)=>{
+      setNotifications((prev) => [data.message,...prev]);
+      fetchTasks();
+      runDynamicQuery(queryType);
+    });
+
+    return () => {
+      socket.off('task_added');
+      socket.off('task_updated');
+      socket.off('task_deleted');
+    };
+    
+  }, [projectId, queryType]);
 
   const handleCreateTask = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`http://localhost:5000/api/tasks`, { title: taskTitle, assigneeId: currentUser._id, organizationId: orgId, userName: currentUser.name});
+      await axios.post(`http://localhost:5000/api/tasks`, { title: taskTitle, assigneeId: currentUser._id, projectId: projectId, userName: currentUser.name});
       setTaskTitle('');
-      fetchTasks(orgId);
-      runDynamicQuery(orgId, queryType);
+      fetchTasks();
+      runDynamicQuery(queryType);
     } catch (error) { console.error('Error creating task: ', error); }
   };
 
@@ -96,17 +116,17 @@ export default function DashboardPage() {
     if (window.confirm('Do you want to delete this task?')) {
       try {
         await axios.delete(`http://localhost:5000/api/tasks/${taskId}`);
-        fetchTasks(orgId);
-        runDynamicQuery(orgId, queryType);
+        fetchTasks();
+        runDynamicQuery(queryType);
       } catch (error) { console.error('Error deleting the task', error); }
     }
   };
 
   const handelUpdateStatus = async (taskId, newStatus, title) => {
     try {
-      await axios.put(`http://localhost:5000/api/tasks/${taskId}`, { status: newStatus, organizationId: orgId, title, userName: currentUser.name });
-      fetchTasks(orgId);
-      runDynamicQuery(orgId, queryType);
+      await axios.put(`http://localhost:5000/api/tasks/${taskId}`, { status: newStatus, projectId: projectId, title: taskTitle, userName: currentUser.name });
+      fetchTasks();
+      runDynamicQuery(queryType);
     } catch (error) { console.error('Error updating the task: ', error); }
   };
 
@@ -114,10 +134,10 @@ export default function DashboardPage() {
     e.preventDefault();
     setIsAiLoading(true);
     try {
-      await axios.post('http://localhost:5000/api/ai/generate', { prompt: aiPrompt, assigneeId: currentUser._id, organizationId: orgId, userName: currentUser.name });
+      await axios.post('http://localhost:5000/api/ai/generate', { prompt: aiPrompt, assigneeId: currentUser._id, projectId: projectId, userName: currentUser.name });
       setAiPrompt('');
-      fetchTasks(orgId);
-      runDynamicQuery(orgId, queryType);
+      fetchTasks();
+      runDynamicQuery(queryType);
     } catch (error) {
       alert('AI Generation failed. Check backend console.');
     } finally {
@@ -133,7 +153,7 @@ export default function DashboardPage() {
 
   const handleSaveBrief = async () => {
     try {
-      await axios.put(`http://localhost:5000/api/users/organization/${orgId}/brief`, { projectBrief });
+      await axios.put(`http://localhost:5000/api/user/projects/${projectId}/brief`, { projectBrief });
       setIsEditingBrief(false);
       alert('Project brief saved successfully');
     } catch (error) {
@@ -187,10 +207,11 @@ export default function DashboardPage() {
           />
         )}
 
-        {activeTab === 'chat' && (<ChatTab socket={socket}/>)}
+        {activeTab === 'chat' && (<ChatTab socket={socket} projectId={projectId} />)}
 
         {activeTab === 'documents' && (
           <DocumentsTab
+            projectId={projectId}
             projectBrief={projectBrief}
             setProjectBrief={setProjectBrief}
             isEditingBrief={isEditingBrief}

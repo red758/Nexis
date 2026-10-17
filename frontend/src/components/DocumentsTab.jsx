@@ -2,6 +2,7 @@
 import ProjectAssets from './ProjectAssets';
 
 export default function DocumentsTab({
+  projectId,
   projectBrief,
   setProjectBrief,
   isEditingBrief,
@@ -19,7 +20,7 @@ export default function DocumentsTab({
         onSave={onSaveBrief}
       />
       
-      <ProjectAssets />
+      <ProjectAssets projectId={projectId}/>
     
     </div>
   );

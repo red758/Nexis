@@ -75,7 +75,7 @@ export default function HomePage(){
           </span>
         </div>
         <div className="flex items-center gap-6">
-          <p className="text-sm font-medium text-slate-600">
+          <p className="text-sm font-medium text-slate-600 hidden sm:block">
             Welcome, <span className="text-slate-900 font-bold">{currentUser.name}</span>
           </p>
           <button onClick={logout} className="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 hover:bg-slate-100 rounded-md transition-colors">
@@ -87,46 +87,42 @@ export default function HomePage(){
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-12 flex flex-col gap-10">
         
-        {/* PAGE TITLE */}
-        <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Your Projects</h1>
-          <p className="text-slate-500 mt-2 text-sm">Select a workspace to view tasks, documents, and team chat.</p>
+        {/* CENTERED HEADER & CREATE SECTION */}
+        <div className="flex flex-col items-center w-full max-w-2xl mx-auto text-center mb-4">
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-3">Your Projects</h1>
+          <p className="text-slate-500 text-sm mb-8">Select a workspace to view tasks, documents, and team chat.</p>
+
+          <RoleGuard allow={['admin']}>
+            {/* Sleek, unified input bar */}
+            <form 
+              onSubmit={handleCreateProject} 
+              className="flex gap-2 w-full bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm focus-within:ring-2 focus-within:ring-slate-900 focus-within:border-slate-900 transition-all"
+            >
+              <div className="flex items-center pl-3 text-slate-400">
+                <span className="text-lg font-light">+</span>
+              </div>
+              <input 
+                type="text" 
+                placeholder="Initialize new project workspace..." 
+                value={newProjectName}
+                onChange={(e) => setNewProjectName(e.target.value)}
+                required
+                className="flex-1 px-2 py-2 bg-transparent outline-none text-sm text-slate-900 placeholder-slate-400"
+              />
+              <button 
+                type="submit" 
+                disabled={!newProjectName.trim()}
+                className="px-6 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                Create
+              </button>
+            </form>
+          </RoleGuard>
         </div>
 
-        {/* PROJECTS GRID */}
+        {/* PROJECTS GRID (Your Original Premium Cards) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           
-          {/* CREATE PROJECT BUTTON (Admin Only) */}
-          <RoleGuard allow={['admin']}>
-            <div className="group relative bg-slate-100/50 hover:bg-white rounded-2xl border-2 border-dashed border-slate-300 hover:border-slate-400 p-6 flex flex-col justify-center transition-all shadow-sm hover:shadow-md h-[220px]">
-              <form onSubmit={handleCreateProject} className="flex flex-col gap-4 h-full justify-center">
-                <div className="text-center">
-                  <div className="w-10 h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-500 group-hover:text-slate-900 transition-colors shadow-sm">
-                    <span className="text-xl leading-none font-light">+</span>
-                  </div>
-                  <h3 className="font-bold text-slate-800 text-sm">Initialize Workspace</h3>
-                </div>
-                
-                <input 
-                  type="text" 
-                  placeholder="Project Name..." 
-                  value={newProjectName}
-                  onChange={(e) => setNewProjectName(e.target.value)}
-                  required
-                  className="px-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-sm text-center shadow-inner transition-all"
-                />
-                
-                {/* Submit button appears only when typing */}
-                {newProjectName.trim().length > 0 && (
-                  <button type="submit" className="bg-slate-900 text-white font-medium text-sm py-2 rounded-lg hover:bg-slate-800 transition-all shadow-md animate-fade-in-up">
-                    Create Project
-                  </button>
-                )}
-              </form>
-            </div>
-          </RoleGuard>
-
-          {/* PROJECT CARDS */}
           {projects.length === 0 && currentUser.role !== 'admin' ? (
             <div className="col-span-1 sm:col-span-2 lg:col-span-3 flex flex-col items-center justify-center py-20 bg-white border border-slate-200 rounded-2xl shadow-sm">
               <span className="text-4xl mb-4">📭</span>
@@ -138,31 +134,28 @@ export default function HomePage(){
               <div 
                 key={project._id} 
                 onClick={() => navigate(`/project/${project._id}`)} 
-                className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between h-[220px] relative overflow-hidden"
+                className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between h-[200px] relative overflow-hidden"
               >
                 {/* Decorative top accent line */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-slate-200 to-slate-300 group-hover:from-blue-500 group-hover:to-indigo-500 transition-all duration-300"></div>
                 
                 <div>
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center border border-slate-100 group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors">
-                      <span className="text-lg">📁</span>
-                    </div>
-                    <span className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-colors shadow-sm">
-                      →
+                  <div className="flex justify-between items-start mb-4 ">
+                    <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-700 transition-colors mb-1 line-clamp-2">
+                    {project.name}
+                    </h3>
+                    <span className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all duration-200 shadow-sm font-bold">
+                      ➜
                     </span>
                   </div>
                   
-                  <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-700 transition-colors mb-1 line-clamp-2">
-                    {project.name}
-                  </h3>
                   <p className="text-xs font-medium text-slate-500 flex items-center gap-1.5 mt-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                     {project.assignedMembers.length} Active Member{project.assignedMembers.length !== 1 && 's'}
                   </p>
                 </div>
                 
-                <div className="mt-4 pt-4 border-t border-slate-100">
+                <div className="mt-4 pt-4 border-t border-slate-300">
                   <span className="text-xs text-slate-400 font-medium">Created {new Date(project.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
