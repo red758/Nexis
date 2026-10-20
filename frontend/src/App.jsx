@@ -5,6 +5,7 @@ import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './pages/HomePage';
+import OrganizationPage from './pages/OrganizationPage';
 
 function App() {
   const { currentUser, loading } = useContext(AuthContext);
@@ -37,13 +38,21 @@ function App() {
 
        {/* THE PROJECT DASHBOARD (Now requires a Project ID in the URL!) */}
         <Route 
+          path="/org/:orgId" 
+          element={
+            <ProtectedRoute>
+              <OrganizationPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
           path="/project/:projectId" 
           element={
             <ProtectedRoute>
               <DashboardPage />
-            </ProtectedRoute>
-          } 
-        />
+            </ProtectedRoute>} 
+          />
         
       </Routes>
     </Router>

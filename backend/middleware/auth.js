@@ -1,4 +1,5 @@
 const jwt=require('jsonwebtoken');
+const User=require('../models/User');
 
 const authMiddleware= (req, res, next)=>{
     console.log(`\nBOUNCER CHECKING REQUEST TO: ${req.originalUrl}`);
@@ -23,12 +24,33 @@ const authMiddleware= (req, res, next)=>{
 };
 
 const requireRole=(rolesAllowed)=>{
-    return (req,res,next)=>{
-        if(!req.user || !rolesAllowed.includes(req.user.role)){
-            console.log(`Rejected: user role '${req.user?.role}' is not allowed here`);
-            return res.status(403).json({error:"Access Denied, Do not have permission."});
+    return async (req,res,next)=>{
+        try{
+            const targetOrgId=req.header('X-Organization-Id') || req.body.organizationId || req.params.orgId;
+
+            if(!targetOrgId){
+                console.log("Rejected: no organization context provided");
+                return res.status(400).json({error:"Organization Context Required"});
+            }
+
+            const user=await User.findById(req.user.userId);
+            if(!user) return res.status(400).json({error:"User not found"});
+
+            const membership=user.memberships.find(
+                m=>m.organization.toString()===targetOrgId.toString()
+            );
+
+            if(!membership || !rolesAllowed.includes(membership.role)){
+                console.log(`Rejected: User role ${membership?.role} is not allowed here`);
+                return res.status(400).json({error:"Access denied, you do not have permission"});
+            }
+
+            req.user.activeRole=membership.role;
+            next();
+        }catch(error){
+            console.error("Role verification error: ",error);
+            res.status(500).json({error:"Server error verifying permissions"});
         }
-        next();
     };
 };
 

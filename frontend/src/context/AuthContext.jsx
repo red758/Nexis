@@ -8,6 +8,12 @@ axios.interceptors.request.use((config) => {
   if (token) {
     config.headers['Authorization'] = `Bearer ${token}`;
   }
+
+  const activeOrgId=localStorage.getItem('nexis_active_org');
+  if(activeOrgId){
+    config.headers['X-Organization-Id']=activeOrgId;
+  }
+
   return config;
 }, (error) => {
   return Promise.reject(error);

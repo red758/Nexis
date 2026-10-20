@@ -21,7 +21,7 @@ router.post('/register', async(req, res)=>{
             console.log(`New client joined workspace: ${email}`);
         }
 
-        const safeOrgId=existingOrg._id.toString();
+        //const safeOrgId=existingOrg._id.toString();
 
         const salt=await bcrypt.genSalt(10);
         const hashedPassword=await bcrypt.hash(password, salt);
@@ -30,8 +30,10 @@ router.post('/register', async(req, res)=>{
             name:userName,
             email:email,
             password:hashedPassword,
-            organization:safeOrgId,
-            role:assignedRole
+            memberships: [{
+                organization: existingOrg._id,
+                role: assignedRole
+            }]
         });
 
         res.status(201).json({message:'User securely created'});
@@ -43,21 +45,25 @@ router.post('/register', async(req, res)=>{
 
 router.post('/login', async(req, res)=>{
     try{
-    //console.log("Email trying to log in:", req.body.email);
+        //console.log("Email trying to log in:", req.body.email);
         const {email, password}=req.body;
-        const user =await User.findOne({email}).populate('organization');
+        const user =await User.findOne({email}).populate('memberships.organization');
+        
         if(!user){
             return res.status(400).json({error:"Invalid email or password"});
         }
         const isMatch=await bcrypt.compare(password, user.password);
+        
         if(!isMatch){
             return res.status(400).json({error:"Invalid email or password"});
         }
+
         const token=jwt.sign(
-            {userId:user._id, orgId:user.organization._id, role:user.role},
+            {userId:user._id},
             process.env.JWT_SECRET,
             {expiresIn:'1d'}
         );
+
         res.status(200).json({
             message:'Login Succesfull',
             token:token,
@@ -65,8 +71,7 @@ router.post('/login', async(req, res)=>{
                 _id:user._id,
                 name:user.name,
                 email:user.email,
-                role:user.role,
-                organization:user.organization
+                memberships: user.memberships
             }
         });
     }catch(error){
@@ -97,22 +102,23 @@ router.delete('/:id', async(req,res)=>{
 //used to auto login when refreshed
 router.get('/me', authMiddleware, async(req, res)=>{
     try{
-        const user=await User.findById(req.user.userId).populate('organization');
+        const user=await User.findById(req.user.userId).populate('memberships.organization');
         if(!user){
             return res.status(404).json({error:'User not found'});
         }
         res.status(200).json({
             _id: user._id,
-            name:user.name,
-            email:user.email,
-            role:user.role,
-            organization:user.organization
+            name: user.name,
+            email: user.email,
+            memberships: user.memberships
         });
     }catch(error){
         console.error('Auto login failed: ',error);
         res.status(500).json({error:'Server error'});
     }
 });
+
+module.exports = router;
 
 //to add brief and updates too {commented since due to architcture shift projectRoutes.js was added and this route is depreciated}
 /*router.put('/organization/:id/brief', authMiddleware, requireRole(['admin', 'developer']), async(req, res)=>{
@@ -134,5 +140,3 @@ router.get('/me', authMiddleware, async(req, res)=>{
         res.status(500).json({error:"Failed to update project brief"});
     }
 });*/
-
-module.exports = router;
