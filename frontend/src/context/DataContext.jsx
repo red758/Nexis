@@ -1,16 +1,22 @@
-import {createContext, useState, useEffect} from 'react';
+import {createContext, useState, useEffect, useMemo, useCallback} from 'react';
 import axios from 'axios';
 
 // Attach JWT token to every outgoing axios request automatically.
 // This means we never manually add Authorization headers in individual API calls.
 axios.interceptors.request.use((config) => {
+  console.log("Intercepting the request")
+  
   const token = localStorage.getItem('nexis_token');
+  
   if (token) {
+    console.log("Token found")
     config.headers['Authorization'] = `Bearer ${token}`;
   }
 
   const activeOrgId=localStorage.getItem('nexis_active_org');
+  
   if(activeOrgId){
+    console.log("Active org found");
     config.headers['X-Organization-Id']=activeOrgId;
   }
 
@@ -19,11 +25,14 @@ axios.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
-export const AuthContext=createContext();
+export const UserContext=createContext();
+export const ActionsContext=createContext();
+export const OrgContext=createContext();
 
-export const AuthProvider=({children})=>{
+export const DataContext=({children})=>{
     const [currentUser, setCurrentUser]=useState(null);
-    const[loading, setLoading]=useState(true);
+    const [loading, setLoading]=useState(true);
+    const [myOrg, setMyOrg]=useState([]);
 
     useEffect(()=>{
         const checkLoggedIn=async ()=>{
@@ -45,19 +54,35 @@ export const AuthProvider=({children})=>{
         checkLoggedIn();
     }, []);
 
-    const login=(userData, token)=>{
+    const login=useCallback((userData, token)=>{
         localStorage.setItem('nexis_token', token);
         setCurrentUser(userData);
-    };
+    },[]);
 
-    const logout=()=>{
+    const logout=useCallback(()=>{
         localStorage.removeItem('nexis_token');
         setCurrentUser(null);
-    };
+    },[]);
 
-    return(
-        <AuthContext.Provider value={{currentUser, login, logout, loading}}>
-            {children}
-        </AuthContext.Provider>
+    const userPackage=useMemo(()=>{
+        return{currentUser, loading};    
+    }, [currentUser, loading]);
+
+    const orgPackage=useMemo(()=>{
+        return{myOrg, setMyOrg};
+    }, [myOrg]);
+
+    const actionsPackage = useMemo(() => {
+        return { login, logout };
+    }, [login, logout]);
+
+    return (
+        <ActionsContext.Provider value={actionsPackage}>
+            <UserContext.Provider value={userPackage}>
+                <OrgContext.Provider value={orgPackage}>
+                    {children}
+                </OrgContext.Provider>
+            </UserContext.Provider>
+        </ActionsContext.Provider>
     );
 };

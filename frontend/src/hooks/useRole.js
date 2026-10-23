@@ -1,8 +1,8 @@
 ﻿import { useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { UserContext } from '../context/DataContext';
 
 export default function useRole() {
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser } = useContext(UserContext);
 
   const role = currentUser?.role;
 

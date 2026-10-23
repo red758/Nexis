@@ -7,15 +7,18 @@ require('dotenv').config();
 const http=require('http');
 const {Server}=require('socket.io');
 
+//Importing the authMiddleware for checking valid users
+const {authMiddleware}=require('./middleware/auth');
+
 //Importing routes
 const userRoutes=require('./routes/userRoutes');
 const taskRoutes=require('./routes/taskRoutes');
 const queryRoutes=require('./routes/queryRoutes');
-const {authMiddleware}=require('./middleware/auth');
 const aiRoutes=require('./routes/aiRoutes');
 const assetRoutes=require('./routes/assetRoutes');
 const chatRoutes=require('./routes/chatRoutes');
 const projectRoutes=require('./routes/projectRoutes');
+const orgRoutes=require('./routes/orgRoutes');
 
 //Initializing express app
 const app=express();
@@ -69,6 +72,7 @@ app.use('/api/ai', authMiddleware, aiRoutes);
 app.use('/api/assets', authMiddleware, assetRoutes);
 app.use('/api/chat',authMiddleware, chatRoutes);
 app.use('/api/projects', authMiddleware, projectRoutes);
+app.use('/api/org', authMiddleware, orgRoutes);
 
 // a simple test route
 /*app.get('/api/health',(req,res)=>{

@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../context/DataContext';
 import Navbar from '../components/Navbar';
 import TabBar from '../components/TabBar';
 import OverviewTab from '../components/OverviewTab';
@@ -168,9 +168,8 @@ export default function DashboardPage() {
   };
 
   const navigate=useNavigate();
-
   const handleBack= ()=>{
-    navigate('/')
+    navigate('/');
   }
 
   return (
@@ -207,7 +206,12 @@ export default function DashboardPage() {
           />
         )}
 
-        {activeTab === 'chat' && (<ChatTab socket={socket} projectId={projectId} />)}
+        {activeTab === 'chat' && (
+          <ChatTab 
+            socket={socket} 
+            projectId={projectId} 
+          />
+        )}
 
         {activeTab === 'documents' && (
           <DocumentsTab

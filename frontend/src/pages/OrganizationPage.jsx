@@ -1,10 +1,11 @@
 import { useState, useEffect, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../context/DataContext';
 
 export default function OrganizationPage() {
   const { currentUser, logout } = useContext(AuthContext);
+  
   const navigate = useNavigate();
   
   // 1. Grab the Organization ID from the URL
@@ -59,6 +60,10 @@ export default function OrganizationPage() {
       alert("Error creating project. Are you an Admin?");
     }
   };
+
+  const moveBack=()=>{
+    navigate('/home');
+  }
 
   if (isLoading) {
     return (

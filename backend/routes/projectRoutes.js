@@ -27,7 +27,7 @@ router.post('/', requireRole(['admin']), async(req,res)=>{
 
 router.get('/org/:orgId', async(req,res)=>{
     try{
-        const {orgId}=req.params;
+        const {orgId}=req.params.orgId;
         const userId=req.user.userId;
         const role=req.user.role;
 

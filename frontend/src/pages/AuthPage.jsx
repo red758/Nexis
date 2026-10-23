@@ -1,12 +1,12 @@
 ﻿import { useState, useContext } from 'react';
 import axios from 'axios';
-import { AuthContext } from '../context/AuthContext';
+import { ActionsContext } from '../context/DataContext';
 import AuthBrand from '../components/AuthBrand';
 import LoginForm from '../components/LoginForm';
 import RegisterForm from '../components/RegisterForm';
 
 export default function AuthPage() {
-  const { login } = useContext(AuthContext);
+  const { login } = useContext(ActionsContext);
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [registerData, setRegisterData] = useState({ userName: '', email: '', password: '', orgName: '' });
@@ -14,7 +14,17 @@ export default function AuthPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
+      console.log("Login request received");
+
       const response = await axios.post('http://localhost:5000/api/users/login', loginData);
+      
+      if(!response){
+        console.log("response is empty: ",response);
+      }
+      
+      console.log("This is response after login: ", response);
+      
+      //setting current user data in context
       login(response.data.user, response.data.token);
     } catch (error) {
       alert(error.response?.data?.error || 'Invalid email or password');
@@ -24,8 +34,12 @@ export default function AuthPage() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
+      console.log("Register request received");
+
       await axios.post('http://localhost:5000/api/users/register', registerData);
+      
       alert('Registration successful');
+      
       setIsLoginMode(true);
     } catch (error) {
       alert(error.response?.data?.error || 'Registration failed');

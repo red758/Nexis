@@ -1,7 +1,7 @@
 ﻿import {useState, useEffect, useContext, useRef} from 'react';
 import axios from 'axios';
 import RoleGuard from './RoleGuard';
-import {AuthContext} from '../context/AuthContext';
+import {AuthContext} from '../context/DataContext';
 
 export default function ProjectAssets({projectId}) {
 

@@ -13,7 +13,7 @@ const userSchema= new mongoose.Schema({
         organization:{
             type:mongoose.Schema.Types.ObjectId,
             ref:'Organization',
-            required:'true'
+            required:true
         },
 
         role:{
@@ -22,7 +22,7 @@ const userSchema= new mongoose.Schema({
             default:'client'
         }
     
-    }],
+    }, {_id:false} ],
    
     createdAt:{type:Date, default:Date.now}
 })

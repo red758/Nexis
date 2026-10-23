@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt=require('bcryptjs');
-const jwt=require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Organization = require('../models/Organization');
 const {requireRole, authMiddleware}=require('../middleware/auth');
 
 router.post('/register', async(req, res)=>{
     try{
+        console.log("Register request received on server");
+
         const {userName, email, password, orgName}=req.body;
 
         let existingOrg=await Organization.findOne({name: orgName});
@@ -16,6 +18,7 @@ router.post('/register', async(req, res)=>{
         if(!existingOrg){
             existingOrg=await Organization.create({name: orgName});
             assignedRole='admin';
+            
             console.log(`New workspace created by Admin: ${email}`);
         }else{
             console.log(`New client joined workspace: ${email}`);
@@ -36,6 +39,8 @@ router.post('/register', async(req, res)=>{
             }]
         });
 
+        console.log("New user is registered: ", newUser);
+
         res.status(201).json({message:'User securely created'});
     }catch(error){
         console.error('Registration error: ', error);
@@ -46,15 +51,20 @@ router.post('/register', async(req, res)=>{
 router.post('/login', async(req, res)=>{
     try{
         //console.log("Email trying to log in:", req.body.email);
+        console.log("Request received to login")
+
         const {email, password}=req.body;
-        const user =await User.findOne({email}).populate('memberships.organization');
+        const user = await User.findOne({email}).populate('memberships.organization');
         
         if(!user){
+            console.log("User not found");
             return res.status(400).json({error:"Invalid email or password"});
         }
+
         const isMatch=await bcrypt.compare(password, user.password);
         
         if(!isMatch){
+            console.log("User not matched invalid credentials");
             return res.status(400).json({error:"Invalid email or password"});
         }
 
@@ -63,6 +73,8 @@ router.post('/login', async(req, res)=>{
             process.env.JWT_SECRET,
             {expiresIn:'1d'}
         );
+
+        console.log("this is the user data: ", user);
 
         res.status(200).json({
             message:'Login Succesfull',
@@ -74,6 +86,8 @@ router.post('/login', async(req, res)=>{
                 memberships: user.memberships
             }
         });
+
+        console.log("Login response sent by server")
     }catch(error){
         console.error("Login error: ", error);
         res.status(500).json({error: "Failed to login"});
@@ -83,6 +97,7 @@ router.post('/login', async(req, res)=>{
 //Delete a User from database
 router.delete('/:id', async(req,res)=>{
     try{
+        console.log("Request reecive to delete a user")
         //Extracting id from route parameters
         const userId=req.params.id;
         //console.log(userId);
@@ -91,10 +106,14 @@ router.delete('/:id', async(req,res)=>{
             console.log('Id not found');
             return res.status(404).json({message:'User not found'});
         } 
+
         await User.findByIdAndDelete(userId);
+        
         res.status(200).json({message:"Successfully deleted user from database"});
+        console.log("User deleted sucessfully")
     }
-    catch{
+    catch(error){
+        console.log("User Delete Error: ", error);
         res.status(500).json({message:"Server database error", error:error.message});
     }
 });
@@ -102,16 +121,22 @@ router.delete('/:id', async(req,res)=>{
 //used to auto login when refreshed
 router.get('/me', authMiddleware, async(req, res)=>{
     try{
+        console.log("Request received to get user data for AutoLogin");
+
         const user=await User.findById(req.user.userId).populate('memberships.organization');
+        
         if(!user){
+            console.log("User not found for AutoLogin");
             return res.status(404).json({error:'User not found'});
         }
+        
         res.status(200).json({
             _id: user._id,
             name: user.name,
             email: user.email,
             memberships: user.memberships
         });
+        
     }catch(error){
         console.error('Auto login failed: ',error);
         res.status(500).json({error:'Server error'});

@@ -1,6 +1,6 @@
 import {useState, useEffect, useContext, useRef} from 'react';
 import axios from'axios';
-import {AuthContext} from '../context/AuthContext';
+import {AuthContext} from '../context/DataContext';
 
 export default function ChatTab({socket, projectId}){
   const {currentUser} = useContext(AuthContext);
